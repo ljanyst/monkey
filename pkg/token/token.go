@@ -5,7 +5,7 @@ type TokenType string
 const (
 	LET       = "LET"
 	IDENT     = "IDENT"
-	ASSIGN    = "="
+	ASSIGN    = "ASSIGN"
 	INT       = "INT"
 	SEMICOLON = "SEMICOLON"
 	FUNCTION  = "FUNCTION"
@@ -20,7 +20,9 @@ const (
 	SLASH     = "SLASH"
 	ASTERISK  = "ASTERISK"
 	LT        = "LT"
+	LE        = "LE"
 	GT        = "GT"
+	GE        = "GE"
 	IF        = "IF"
 	RETURN    = "RETURN"
 	TRUE      = "TRUE"
@@ -29,6 +31,7 @@ const (
 	STRING    = "STRING"
 	EQ        = "EQ"
 	NOT_EQ    = "NOT_EQ"
+	INVALID   = "INVALID"
 	EOF       = "EOF"
 )
 
@@ -37,4 +40,21 @@ type Token struct {
 	Literal string
 	Line    uint32
 	Column  uint32
+}
+
+var keywords = map[string]TokenType{
+	"let":    LET,
+	"fn":     FUNCTION,
+	"if":     IF,
+	"else":   ELSE,
+	"return": RETURN,
+	"true":   TRUE,
+	"false":  FALSE,
+}
+
+func LookupKeyword(ident string) TokenType {
+	if tokenType, ok := keywords[ident]; ok {
+		return tokenType
+	}
+	return IDENT
 }
