@@ -26,6 +26,8 @@ if (5 < 10) {
 
 let żółwik = "zażółć gęślą jaźń";
 
+12 <= 46;
+43 >= 17;
 10 == 10;
 10 != 9;
 `
@@ -104,6 +106,14 @@ let żółwik = "zażółć gęślą jaźń";
 		{token.ASSIGN, "="},
 		{token.STRING, "zażółć gęślą jaźń"},
 		{token.SEMICOLON, ";"},
+		{token.INT, "12"},
+		{token.LE, "<="},
+		{token.INT, "46"},
+		{token.SEMICOLON, ";"},
+		{token.INT, "43"},
+		{token.GE, ">="},
+		{token.INT, "17"},
+		{token.SEMICOLON, ";"},
 		{token.INT, "10"},
 		{token.EQ, "=="},
 		{token.INT, "10"},
@@ -120,14 +130,9 @@ let żółwik = "zażółć gęślą jaźń";
 	for i, tt := range tests {
 		tok := l.NextToken()
 
-		if tok.Type != tt.expectedType {
-			t.Errorf("tests[%d] - tokentype wrong. expected=%q, got=%q",
-				i, tt.expectedType, tok.Type)
-		}
-
-		if tok.Literal != tt.expectedLiteral {
-			t.Errorf("tests[%d] - literal wrong. expected=%q, got=%q",
-				i, tt.expectedLiteral, tok.Literal)
+		if tok.Type != tt.expectedType || tok.Literal != tt.expectedLiteral {
+			t.Errorf("tests[%d] - wrong token expected %s(%q), got %s(%q), at %d:%d",
+				i, tt.expectedType, tt.expectedLiteral, tok.Type, tok.Literal, tok.Line, tok.Column)
 		}
 	}
 }
