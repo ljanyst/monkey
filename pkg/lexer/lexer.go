@@ -89,7 +89,7 @@ func (l *Lexer) readString() token.Token {
 
 	for {
 		if !l.maybeConsumePred(pred) {
-			return token.Token{token.INVALID, string(str), l.line, startCol}
+			return token.Token{token.INVALID, string(append([]rune{'"'}, str...)), l.line, startCol}
 		}
 
 		if l.curRune == '"' {
