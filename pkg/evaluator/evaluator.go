@@ -5,8 +5,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/ljanyst/edu-interp/pkg/lexer"
-	"github.com/ljanyst/edu-interp/pkg/token"
+	"github.com/ljanyst/monkey/pkg/lexer"
+	"github.com/ljanyst/monkey/pkg/token"
 )
 
 func EvalReader(reader io.Reader) error {

@@ -3,7 +3,7 @@ package lexer
 import (
 	"testing"
 
-	"github.com/ljanyst/edu-interp/pkg/token"
+	"github.com/ljanyst/monkey/pkg/token"
 )
 
 func TestNextToken(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/ljanyst/edu-interp/pkg/token"
+	"github.com/ljanyst/monkey/pkg/token"
 )
 
 type Lexer struct {

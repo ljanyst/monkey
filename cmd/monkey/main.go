@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ljanyst/edu-interp/pkg/evaluator"
+	"github.com/ljanyst/monkey/pkg/evaluator"
 )
 
 const PROMPT = ">> "
