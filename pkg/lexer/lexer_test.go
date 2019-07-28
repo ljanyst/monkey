@@ -6,7 +6,16 @@ import (
 	"github.com/ljanyst/monkey/pkg/token"
 )
 
-func TestNextToken(t *testing.T) {
+func compareTokens(t *testing.T, got, expected token.Token) bool {
+	if got.Type != expected.Type || got.Literal != expected.Literal {
+		t.Errorf("Wrong token: expected %s(%q), got %s(%q), at %d:%d",
+			expected.Type, expected.Literal, got.Type, got.Literal, got.Line, got.Column)
+		return false
+	}
+	return true
+}
+
+func TestReadToken(t *testing.T) {
 	input := `let five = 5;
 let ten = 10;
 
@@ -22,7 +31,7 @@ if (5 < 10) {
 	return true;
 } else {
 	return false;
-}
+};
 
 let żółwik = "zażółć gęślą jaźń";
 
@@ -32,107 +41,124 @@ let żółwik = "zażółć gęślą jaźń";
 10 != 9;
 `
 
-	tests := []struct {
-		expectedType    token.TokenType
-		expectedLiteral string
-	}{
-		{token.LET, "let"},
-		{token.IDENT, "five"},
-		{token.ASSIGN, "="},
-		{token.INT, "5"},
-		{token.SEMICOLON, ";"},
-		{token.LET, "let"},
-		{token.IDENT, "ten"},
-		{token.ASSIGN, "="},
-		{token.INT, "10"},
-		{token.SEMICOLON, ";"},
-		{token.LET, "let"},
-		{token.IDENT, "add"},
-		{token.ASSIGN, "="},
-		{token.FUNCTION, "fn"},
-		{token.LPAREN, "("},
-		{token.IDENT, "x"},
-		{token.COMMA, ","},
-		{token.IDENT, "y"},
-		{token.RPAREN, ")"},
-		{token.LBRACE, "{"},
-		{token.IDENT, "x"},
-		{token.PLUS, "+"},
-		{token.IDENT, "y"},
-		{token.SEMICOLON, ";"},
-		{token.RBRACE, "}"},
-		{token.SEMICOLON, ";"},
-		{token.LET, "let"},
-		{token.IDENT, "result"},
-		{token.ASSIGN, "="},
-		{token.IDENT, "add"},
-		{token.LPAREN, "("},
-		{token.IDENT, "five"},
-		{token.COMMA, ","},
-		{token.IDENT, "ten"},
-		{token.RPAREN, ")"},
-		{token.SEMICOLON, ";"},
-		{token.BANG, "!"},
-		{token.MINUS, "-"},
-		{token.SLASH, "/"},
-		{token.ASTERISK, "*"},
-		{token.INT, "5"},
-		{token.SEMICOLON, ";"},
-		{token.INT, "5"},
-		{token.LT, "<"},
-		{token.INT, "10"},
-		{token.GT, ">"},
-		{token.INT, "5"},
-		{token.SEMICOLON, ";"},
-		{token.IF, "if"},
-		{token.LPAREN, "("},
-		{token.INT, "5"},
-		{token.LT, "<"},
-		{token.INT, "10"},
-		{token.RPAREN, ")"},
-		{token.LBRACE, "{"},
-		{token.RETURN, "return"},
-		{token.TRUE, "true"},
-		{token.SEMICOLON, ";"},
-		{token.RBRACE, "}"},
-		{token.ELSE, "else"},
-		{token.LBRACE, "{"},
-		{token.RETURN, "return"},
-		{token.FALSE, "false"},
-		{token.SEMICOLON, ";"},
-		{token.RBRACE, "}"},
-		{token.LET, "let"},
-		{token.IDENT, "żółwik"},
-		{token.ASSIGN, "="},
-		{token.STRING, "zażółć gęślą jaźń"},
-		{token.SEMICOLON, ";"},
-		{token.INT, "12"},
-		{token.LE, "<="},
-		{token.INT, "46"},
-		{token.SEMICOLON, ";"},
-		{token.INT, "43"},
-		{token.GE, ">="},
-		{token.INT, "17"},
-		{token.SEMICOLON, ";"},
-		{token.INT, "10"},
-		{token.EQ, "=="},
-		{token.INT, "10"},
-		{token.SEMICOLON, ";"},
-		{token.INT, "10"},
-		{token.NOT_EQ, "!="},
-		{token.INT, "9"},
-		{token.SEMICOLON, ";"},
-		{token.EOF, ""},
+	tests := []token.Token{
+		{token.LET, "let", 0, 0},
+		{token.IDENT, "five", 0, 0},
+		{token.ASSIGN, "=", 0, 0},
+		{token.INT, "5", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+		{token.LET, "let", 0, 0},
+		{token.IDENT, "ten", 0, 0},
+		{token.ASSIGN, "=", 0, 0},
+		{token.INT, "10", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+		{token.LET, "let", 0, 0},
+		{token.IDENT, "add", 0, 0},
+		{token.ASSIGN, "=", 0, 0},
+		{token.FUNCTION, "fn", 0, 0},
+		{token.LPAREN, "(", 0, 0},
+		{token.IDENT, "x", 0, 0},
+		{token.COMMA, ",", 0, 0},
+		{token.IDENT, "y", 0, 0},
+		{token.RPAREN, ")", 0, 0},
+		{token.LBRACE, "{", 0, 0},
+		{token.IDENT, "x", 0, 0},
+		{token.PLUS, "+", 0, 0},
+		{token.IDENT, "y", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+		{token.RBRACE, "}", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+		{token.LET, "let", 0, 0},
+		{token.IDENT, "result", 0, 0},
+		{token.ASSIGN, "=", 0, 0},
+		{token.IDENT, "add", 0, 0},
+		{token.LPAREN, "(", 0, 0},
+		{token.IDENT, "five", 0, 0},
+		{token.COMMA, ",", 0, 0},
+		{token.IDENT, "ten", 0, 0},
+		{token.RPAREN, ")", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+		{token.BANG, "!", 0, 0},
+		{token.MINUS, "-", 0, 0},
+		{token.SLASH, "/", 0, 0},
+		{token.ASTERISK, "*", 0, 0},
+		{token.INT, "5", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+		{token.INT, "5", 0, 0},
+		{token.LT, "<", 0, 0},
+		{token.INT, "10", 0, 0},
+		{token.GT, ">", 0, 0},
+		{token.INT, "5", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+		{token.IF, "if", 0, 0},
+		{token.LPAREN, "(", 0, 0},
+		{token.INT, "5", 0, 0},
+		{token.LT, "<", 0, 0},
+		{token.INT, "10", 0, 0},
+		{token.RPAREN, ")", 0, 0},
+		{token.LBRACE, "{", 0, 0},
+		{token.RETURN, "return", 0, 0},
+		{token.TRUE, "true", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+		{token.RBRACE, "}", 0, 0},
+		{token.ELSE, "else", 0, 0},
+		{token.LBRACE, "{", 0, 0},
+		{token.RETURN, "return", 0, 0},
+		{token.FALSE, "false", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+		{token.RBRACE, "}", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+		{token.LET, "let", 0, 0},
+		{token.IDENT, "żółwik", 0, 0},
+		{token.ASSIGN, "=", 0, 0},
+		{token.STRING, "zażółć gęślą jaźń", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+		{token.INT, "12", 0, 0},
+		{token.LE, "<=", 0, 0},
+		{token.INT, "46", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+		{token.INT, "43", 0, 0},
+		{token.GE, ">=", 0, 0},
+		{token.INT, "17", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+		{token.INT, "10", 0, 0},
+		{token.EQ, "==", 0, 0},
+		{token.INT, "10", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+		{token.INT, "10", 0, 0},
+		{token.NOT_EQ, "!=", 0, 0},
+		{token.INT, "9", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+		{token.EOF, "", 0, 0},
 	}
 
 	l := NewLexerFromString(input)
 
-	for i, tt := range tests {
-		tok := l.NextToken()
+	for _, expected := range tests {
+		got := l.ReadToken()
+		compareTokens(t, got, expected)
+	}
+}
 
-		if tok.Type != tt.expectedType || tok.Literal != tt.expectedLiteral {
-			t.Errorf("tests[%d] - wrong token expected %s(%q), got %s(%q), at %d:%d",
-				i, tt.expectedType, tt.expectedLiteral, tok.Type, tok.Literal, tok.Line, tok.Column)
-		}
+func TestUnreadToken(t *testing.T) {
+	input := `!-/*5;`
+
+	tests := []token.Token{
+		{token.BANG, "!", 0, 0},
+		{token.MINUS, "-", 0, 0},
+		{token.SLASH, "/", 0, 0},
+		{token.ASTERISK, "*", 0, 0},
+		{token.INT, "5", 0, 0},
+		{token.SEMICOLON, ";", 0, 0},
+	}
+
+	l := NewLexerFromString(input)
+
+	for _, expected := range tests {
+		got := l.ReadToken()
+		compareTokens(t, got, expected)
+		l.UnreadToken()
+		got = l.ReadToken()
+		compareTokens(t, got, expected)
 	}
 }
