@@ -10,10 +10,12 @@ import (
 )
 
 type Lexer struct {
-	reader  *bufio.Reader
-	line    uint32
-	column  uint32
-	curRune rune
+	reader     *bufio.Reader
+	line       uint32
+	column     uint32
+	curRune    rune
+	curToken   token.Token
+	retCurrent bool
 }
 
 func NewLexerFromString(input string) *Lexer {
@@ -100,7 +102,7 @@ func (l *Lexer) readString() token.Token {
 	return token.Token{token.STRING, string(str), l.line, startCol}
 }
 
-func (l *Lexer) NextToken() token.Token {
+func (l *Lexer) nextToken() token.Token {
 	for {
 		var err error
 		l.curRune, _, err = l.reader.ReadRune()
@@ -174,4 +176,17 @@ func (l *Lexer) NextToken() token.Token {
 			return l.mkToken(token.INVALID)
 		}
 	}
+}
+
+func (l *Lexer) ReadToken() token.Token {
+	if l.retCurrent {
+		l.retCurrent = false
+	} else {
+		l.curToken = l.nextToken()
+	}
+	return l.curToken
+}
+
+func (l *Lexer) UnreadToken() {
+	l.retCurrent = true
 }
