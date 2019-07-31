@@ -91,6 +91,15 @@ func (p *Parser) parseBool() (Node, error) {
 	return &BoolNode{tok, false}, nil
 }
 
+func (p *Parser) parsePrefix() (Node, error) {
+	tok := p.lexer.ReadToken()
+	exp, err := p.parseExpression(PREFIX)
+	if err != nil {
+		return nil, err
+	}
+	return &PrefixNode{tok, exp}, nil
+}
+
 func (p *Parser) parseExpression(priority int) (Node, error) {
 	tok := p.nextToken()
 
@@ -146,5 +155,7 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.prefixParsers[token.IDENT] = p.parseIdent
 	p.prefixParsers[token.TRUE] = p.parseBool
 	p.prefixParsers[token.FALSE] = p.parseBool
+	p.prefixParsers[token.BANG] = p.parsePrefix
+	p.prefixParsers[token.MINUS] = p.parsePrefix
 	return p
 }

@@ -37,6 +37,11 @@ type BoolNode struct {
 	Value bool
 }
 
+type PrefixNode struct {
+	token      token.Token
+	expression Node
+}
+
 func (n *ProgramNode) String() string {
 	var sb strings.Builder
 	for _, node := range n.children {
@@ -101,5 +106,17 @@ func (n *BoolNode) Children() []Node {
 }
 
 func (n *BoolNode) Token() token.Token {
+	return n.token
+}
+
+func (n *PrefixNode) String() string {
+	return fmt.Sprintf("%s(%s)", n.token.Literal, n.expression)
+}
+
+func (n *PrefixNode) Children() []Node {
+	return []Node{n.expression}
+}
+
+func (n *PrefixNode) Token() token.Token {
 	return n.token
 }
