@@ -11,7 +11,7 @@ import (
 
 func EvalReader(reader io.Reader) error {
 	l := lexer.NewLexerFromReader(reader)
-	for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
+	for tok := l.ReadToken(); tok.Type != token.EOF; tok = l.ReadToken() {
 		fmt.Printf("%v %s (%d:%d)\n", tok.Type, tok.Literal, tok.Line, tok.Column)
 	}
 	return nil
