@@ -36,8 +36,12 @@ func (p *Parser) nextToken() token.Token {
 }
 
 func (p *Parser) mkErrWrongToken(expected string, got token.Token) error {
+	lit := got.Literal
+	if got.Type == token.EOF {
+		lit = "end of input"
+	}
 	return fmt.Errorf("Parsing error: expected %s, got %s at %d:%d",
-		expected, got.Literal,
+		expected, lit,
 		got.Line, got.Column)
 }
 
