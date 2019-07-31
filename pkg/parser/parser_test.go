@@ -50,29 +50,45 @@ func TestLiteralsAndIdentifiers(t *testing.T) {
 test;
 true;
 false;
+!true;
+-10;
 `
 
 	expected := ProgramNode{
 		[]Node{
 			&IntNode{
-				token.Token{token.INT, "10", 1, 0},
+				token.Token{token.INT, "10", 1, 1},
 				10,
 			},
 			&StringNode{
-				token.Token{token.STRING, "zażółć gęślą jaźń", 2, 0},
+				token.Token{token.STRING, "zażółć gęślą jaźń", 2, 1},
 				"zażółć gęślą jaźń",
 			},
 			&IdentifierNode{
-				token.Token{token.IDENT, "test", 3, 0},
+				token.Token{token.IDENT, "test", 3, 1},
 				"test",
 			},
 			&BoolNode{
-				token.Token{token.TRUE, "true", 4, 0},
+				token.Token{token.TRUE, "true", 4, 1},
 				true,
 			},
 			&BoolNode{
-				token.Token{token.FALSE, "false", 5, 0},
+				token.Token{token.FALSE, "false", 5, 1},
 				false,
+			},
+			&PrefixNode{
+				token.Token{token.BANG, "!", 6, 1},
+				&BoolNode{
+					token.Token{token.TRUE, "true", 6, 2},
+					true,
+				},
+			},
+			&PrefixNode{
+				token.Token{token.MINUS, "-", 7, 1},
+				&IntNode{
+					token.Token{token.INT, "10", 7, 2},
+					10,
+				},
 			},
 		},
 	}
