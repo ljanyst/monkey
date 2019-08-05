@@ -192,15 +192,23 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.prefixParsers[token.MINUS] = p.parsePrefix
 
 	p.infixParsers = make(map[token.TokenType]infixParseFn)
-	p.infixParsers[token.MINUS] = p.parseInfix
-	p.infixParsers[token.PLUS] = p.parseInfix
-	p.infixParsers[token.ASTERISK] = p.parseInfix
-	p.infixParsers[token.SLASH] = p.parseInfix
+	for _, t := range []token.TokenType{
+		token.MINUS, token.PLUS, token.ASTERISK, token.SLASH, token.EQ,
+		token.NOT_EQ, token.LT, token.LE, token.GT, token.GE,
+	} {
+		p.infixParsers[t] = p.parseInfix
+	}
 
 	p.priorities = make(map[token.TokenType]int)
 	p.priorities[token.MINUS] = SUM
 	p.priorities[token.PLUS] = SUM
 	p.priorities[token.ASTERISK] = PRODUCT
 	p.priorities[token.SLASH] = PRODUCT
+	p.priorities[token.EQ] = COMPARISON
+	p.priorities[token.NOT_EQ] = COMPARISON
+	p.priorities[token.LT] = COMPARISON
+	p.priorities[token.LE] = COMPARISON
+	p.priorities[token.GT] = COMPARISON
+	p.priorities[token.GE] = COMPARISON
 	return p
 }
