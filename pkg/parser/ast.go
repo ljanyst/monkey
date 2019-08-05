@@ -42,6 +42,12 @@ type PrefixNode struct {
 	expression Node
 }
 
+type InfixNode struct {
+	token token.Token
+	left  Node
+	right Node
+}
+
 func (n *ProgramNode) String() string {
 	var sb strings.Builder
 	for _, node := range n.children {
@@ -110,7 +116,7 @@ func (n *BoolNode) Token() token.Token {
 }
 
 func (n *PrefixNode) String() string {
-	return fmt.Sprintf("%s(%s)", n.token.Literal, n.expression)
+	return fmt.Sprintf("(%s %s)", n.token.Literal, n.expression)
 }
 
 func (n *PrefixNode) Children() []Node {
@@ -118,5 +124,17 @@ func (n *PrefixNode) Children() []Node {
 }
 
 func (n *PrefixNode) Token() token.Token {
+	return n.token
+}
+
+func (n *InfixNode) String() string {
+	return fmt.Sprintf("(%s %s %s)", n.left, n.token.Literal, n.right)
+}
+
+func (n *InfixNode) Children() []Node {
+	return []Node{n.left, n.right}
+}
+
+func (n *InfixNode) Token() token.Token {
 	return n.token
 }

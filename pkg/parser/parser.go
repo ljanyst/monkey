@@ -27,6 +27,7 @@ type Parser struct {
 
 	infixParsers  map[token.TokenType]infixParseFn
 	prefixParsers map[token.TokenType]prefixParseFn
+	priorities    map[token.TokenType]int
 }
 
 func (p *Parser) nextToken() token.Token {
@@ -100,20 +101,52 @@ func (p *Parser) parsePrefix() (Node, error) {
 	return &PrefixNode{tok, exp}, nil
 }
 
+func (p *Parser) parseInfix(left Node) (Node, error) {
+	tok := p.lexer.ReadToken()
+	right, err := p.parseExpression(p.getPriority(tok))
+	if err != nil {
+		return nil, err
+	}
+	return &InfixNode{tok, left, right}, nil
+}
+
+func (p *Parser) getPriority(token token.Token) int {
+	if prio, ok := p.priorities[token.Type]; ok {
+		return prio
+	}
+	return LOWEST
+}
+
 func (p *Parser) parseExpression(priority int) (Node, error) {
 	tok := p.nextToken()
 
-	parser, hasParser := p.prefixParsers[tok.Type]
+	prefixParser, hasParser := p.prefixParsers[tok.Type]
 	if !hasParser {
 		return nil, p.mkErrUnexpectedToken(tok)
 	}
 
-	node, err := parser()
+	left, err := prefixParser()
 	if err != nil {
 		return nil, err
 	}
 
-	return node, nil
+	for {
+		tok = p.nextToken()
+		if priority >= p.getPriority(tok) || tok.Type == token.SEMICOLON {
+			break
+		}
+		infixParser, hasParser := p.infixParsers[tok.Type]
+		if !hasParser {
+			return nil, p.mkErrUnexpectedToken(tok)
+		}
+
+		left, err = infixParser(left)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return left, nil
 }
 
 func (p *Parser) parsePrimaryExpression() (Node, error) {
@@ -157,5 +190,17 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.prefixParsers[token.FALSE] = p.parseBool
 	p.prefixParsers[token.BANG] = p.parsePrefix
 	p.prefixParsers[token.MINUS] = p.parsePrefix
+
+	p.infixParsers = make(map[token.TokenType]infixParseFn)
+	p.infixParsers[token.MINUS] = p.parseInfix
+	p.infixParsers[token.PLUS] = p.parseInfix
+	p.infixParsers[token.ASTERISK] = p.parseInfix
+	p.infixParsers[token.SLASH] = p.parseInfix
+
+	p.priorities = make(map[token.TokenType]int)
+	p.priorities[token.MINUS] = SUM
+	p.priorities[token.PLUS] = SUM
+	p.priorities[token.ASTERISK] = PRODUCT
+	p.priorities[token.SLASH] = PRODUCT
 	return p
 }
