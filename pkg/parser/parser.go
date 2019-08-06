@@ -118,8 +118,70 @@ func (p *Parser) parseParen() (Node, error) {
 	}
 	tok = p.lexer.ReadToken()
 	if tok.Type != token.RPAREN {
-		return nil, p.mkErrWrongToken(token.RPAREN, tok)
+		return nil, p.mkErrWrongToken(")", tok)
 	}
+	return exp, nil
+}
+
+func (p *Parser) parseBlock() (Node, error) {
+	n := BlockNode{}
+
+	tok := p.lexer.ReadToken()
+	if tok.Type != token.LBRACE {
+		return nil, p.mkErrWrongToken("{", tok)
+	}
+
+	for {
+		if p.nextToken().Type == token.RBRACE {
+			break
+		}
+
+		node, err := p.parsePrimaryExpression()
+		if err != nil {
+			return nil, err
+		}
+		n.children = append(n.children, node)
+	}
+
+	tok = p.lexer.ReadToken()
+	if tok.Type != token.RBRACE {
+		return nil, p.mkErrWrongToken("}", tok)
+	}
+
+	return &n, nil
+}
+
+func (p *Parser) parseConditional() (Node, error) {
+	ifTok := p.lexer.ReadToken()
+	tok := p.lexer.ReadToken()
+
+	if tok.Type != token.LPAREN {
+		return nil, p.mkErrWrongToken("(", tok)
+	}
+
+	condition, err := p.parseExpression(LOWEST)
+	if err != nil {
+		return nil, err
+	}
+
+	tok = p.lexer.ReadToken()
+	if tok.Type != token.RPAREN {
+		return nil, p.mkErrWrongToken(")", tok)
+	}
+
+	consequent, err := p.parseBlock()
+	if err != nil {
+		return nil, err
+	}
+
+	var alternative Node
+	if p.nextToken().Type == token.ELSE {
+		tok = p.lexer.ReadToken()
+		alternative, err = p.parseBlock()
+	}
+
+	exp := &ConditionalNode{ifTok, condition, consequent, alternative}
+
 	return exp, nil
 }
 
@@ -217,6 +279,7 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.prefixParsers[token.BANG] = p.parsePrefix
 	p.prefixParsers[token.MINUS] = p.parsePrefix
 	p.prefixParsers[token.LPAREN] = p.parseParen
+	p.prefixParsers[token.IF] = p.parseConditional
 
 	p.infixParsers = make(map[token.TokenType]infixParseFn)
 	for _, t := range []token.TokenType{

@@ -48,6 +48,13 @@ type InfixNode struct {
 	right Node
 }
 
+type ConditionalNode struct {
+	token       token.Token
+	condition   Node
+	consequent  Node
+	alternative Node
+}
+
 func (n *BlockNode) String(padding string) string {
 	var sb strings.Builder
 	sb.WriteString(padding)
@@ -143,5 +150,24 @@ func (n *InfixNode) Children() []Node {
 }
 
 func (n *InfixNode) Token() token.Token {
+	return n.token
+}
+
+func (n *ConditionalNode) String(padding string) string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("if %s\n", n.condition.String("")))
+	sb.WriteString(n.consequent.String(padding))
+	if n.alternative != nil {
+		sb.WriteString(fmt.Sprintf("\n%selse\n", padding))
+		sb.WriteString(n.alternative.String(padding))
+	}
+	return sb.String()
+}
+
+func (n *ConditionalNode) Children() []Node {
+	return []Node{n.condition, n.consequent, n.alternative}
+}
+
+func (n *ConditionalNode) Token() token.Token {
 	return n.token
 }
