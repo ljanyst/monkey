@@ -13,6 +13,13 @@ var printAst = flag.Bool("print-ast", false, "print the AST")
 var printProgram = flag.Bool("print-program", false, "print the parsed program")
 
 func compareAst(t *testing.T, got, expected Node, print bool, depth string) bool {
+	if got == nil || expected == nil {
+		if expected == got {
+			return true
+		}
+		return false
+	}
+
 	gt := got.Token()
 	et := expected.Token()
 
@@ -348,6 +355,99 @@ func TestInfixPriority(t *testing.T) {
 					&IntNode{
 						token.Token{token.INT, "4", 10, 8},
 						4,
+					},
+				},
+			},
+		},
+	}
+
+	parseAndCompareAst(t, input, &expected)
+}
+
+func TestIfElse(t *testing.T) {
+	input := `
+if (12 < 4) {
+  3 * 20;
+  23 >= 20;
+};
+
+if (!flag) {
+  false;
+} else {
+  10;
+  "test";
+};
+`
+	expected := BlockNode{
+		[]Node{
+			&ConditionalNode{
+				token.Token{token.IF, "if", 2, 1},
+				&InfixNode{
+					token.Token{token.LT, "<", 2, 8},
+					&IntNode{
+						token.Token{token.INT, "12", 2, 5},
+						12,
+					},
+					&IntNode{
+						token.Token{token.INT, "4", 2, 10},
+						4,
+					},
+				},
+				&BlockNode{
+					[]Node{
+						&InfixNode{
+							token.Token{token.ASTERISK, "*", 2, 5},
+							&IntNode{
+								token.Token{token.INT, "3", 2, 3},
+								3,
+							},
+							&IntNode{
+								token.Token{token.INT, "20", 2, 7},
+								20,
+							},
+						},
+						&InfixNode{
+							token.Token{token.GE, ">=", 3, 6},
+							&IntNode{
+								token.Token{token.INT, "23", 3, 3},
+								23,
+							},
+							&IntNode{
+								token.Token{token.INT, "20", 3, 9},
+								20,
+							},
+						},
+					},
+				},
+				nil,
+			},
+			&ConditionalNode{
+				token.Token{token.IF, "if", 2, 1},
+				&PrefixNode{
+					token.Token{token.BANG, "!", 10, 1},
+					&IdentifierNode{
+						token.Token{token.IDENT, "flag", 3, 1},
+						"flag",
+					},
+				},
+				&BlockNode{
+					[]Node{
+						&BoolNode{
+							token.Token{token.FALSE, "false", 5, 1},
+							false,
+						},
+					},
+				},
+				&BlockNode{
+					[]Node{
+						&IntNode{
+							token.Token{token.INT, "10", 5, 1},
+							10,
+						},
+						&StringNode{
+							token.Token{token.STRING, "test", 5, 1},
+							"test",
+						},
 					},
 				},
 			},
