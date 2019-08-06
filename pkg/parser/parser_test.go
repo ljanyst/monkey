@@ -208,28 +208,28 @@ func TestInfixPriority(t *testing.T) {
 					2,
 				},
 				&InfixNode{
-					token.Token{token.ASTERISK, "*", 6, 7},
-					&IntNode{
-						token.Token{token.INT, "4", 6, 5},
-						4,
-					},
+					token.Token{token.ASTERISK, "*", 6, 15},
 					&InfixNode{
 						token.Token{token.ASTERISK, "*", 6, 11},
-						&IntNode{
-							token.Token{token.INT, "5", 6, 9},
-							5,
-						},
 						&InfixNode{
-							token.Token{token.ASTERISK, "*", 6, 15},
+							token.Token{token.ASTERISK, "*", 6, 7},
 							&IntNode{
-								token.Token{token.INT, "6", 6, 13},
-								6,
+								token.Token{token.INT, "4", 6, 5},
+								4,
 							},
 							&IntNode{
-								token.Token{token.INT, "7", 6, 17},
-								7,
+								token.Token{token.INT, "5", 6, 9},
+								5,
 							},
 						},
+						&IntNode{
+							token.Token{token.INT, "6", 6, 13},
+							6,
+						},
+					},
+					&IntNode{
+						token.Token{token.INT, "7", 6, 17},
+						7,
 					},
 				},
 			},
@@ -281,7 +281,7 @@ func TestInfixPriority(t *testing.T) {
 					},
 				},
 				&InfixNode{
-					token.Token{token.ASTERISK, "*", 8, 15},
+					token.Token{token.PLUS, "+", 8, 15},
 					&IntNode{
 						token.Token{token.INT, "12", 8, 12},
 						12,
