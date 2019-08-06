@@ -1,15 +1,21 @@
 package parser
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/ljanyst/monkey/pkg/lexer"
 	"github.com/ljanyst/monkey/pkg/token"
 )
 
-func compareAst(t *testing.T, got, expected Node) bool {
+func compareAst(t *testing.T, got, expected Node, print bool, depth string) bool {
 	gt := got.Token()
 	et := expected.Token()
+
+	if print {
+		fmt.Printf("%s %s\n", depth, gt.Literal)
+	}
+
 	if gt.Type != et.Type || gt.Literal != et.Literal {
 		t.Errorf("Wrong token: expected %s(%q), got %s(%q), at %d:%d",
 			et.Type, et.Literal, gt.Type, gt.Literal, gt.Line, gt.Column)
@@ -26,11 +32,11 @@ func compareAst(t *testing.T, got, expected Node) bool {
 	}
 
 	for i := 0; i < len(gotChildren); i++ {
-		if !compareAst(t, gotChildren[i], expectedChildren[i]) {
+		if !compareAst(t, gotChildren[i], expectedChildren[i], print, depth+"  ") {
 			return false
 		}
 	}
-	return false
+	return true
 }
 
 func parseAndCompareAst(t *testing.T, input string, expected Node) bool {
@@ -41,7 +47,11 @@ func parseAndCompareAst(t *testing.T, input string, expected Node) bool {
 		t.Errorf("Parser error: %s", err)
 		return false
 	}
-	return compareAst(t, parsed, expected)
+	if !compareAst(t, parsed, expected, false, "") {
+		t.Errorf("ASTs differ")
+		return false
+	}
+	return true
 }
 
 func TestLiteralsAndIdentifiers(t *testing.T) {
