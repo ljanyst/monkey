@@ -396,24 +396,24 @@ if (!flag) {
 				&BlockNode{
 					[]Node{
 						&InfixNode{
-							token.Token{token.ASTERISK, "*", 2, 5},
+							token.Token{token.ASTERISK, "*", 3, 5},
 							&IntNode{
-								token.Token{token.INT, "3", 2, 3},
+								token.Token{token.INT, "3", 3, 3},
 								3,
 							},
 							&IntNode{
-								token.Token{token.INT, "20", 2, 7},
+								token.Token{token.INT, "20", 3, 7},
 								20,
 							},
 						},
 						&InfixNode{
-							token.Token{token.GE, ">=", 3, 6},
+							token.Token{token.GE, ">=", 4, 6},
 							&IntNode{
-								token.Token{token.INT, "23", 3, 3},
+								token.Token{token.INT, "23", 4, 3},
 								23,
 							},
 							&IntNode{
-								token.Token{token.INT, "20", 3, 9},
+								token.Token{token.INT, "20", 4, 9},
 								20,
 							},
 						},
@@ -422,18 +422,18 @@ if (!flag) {
 				nil,
 			},
 			&ConditionalNode{
-				token.Token{token.IF, "if", 2, 1},
+				token.Token{token.IF, "if", 7, 1},
 				&PrefixNode{
-					token.Token{token.BANG, "!", 10, 1},
+					token.Token{token.BANG, "!", 7, 5},
 					&IdentifierNode{
-						token.Token{token.IDENT, "flag", 3, 1},
+						token.Token{token.IDENT, "flag", 7, 6},
 						"flag",
 					},
 				},
 				&BlockNode{
 					[]Node{
 						&BoolNode{
-							token.Token{token.FALSE, "false", 5, 1},
+							token.Token{token.FALSE, "false", 8, 3},
 							false,
 						},
 					},
@@ -441,11 +441,11 @@ if (!flag) {
 				&BlockNode{
 					[]Node{
 						&IntNode{
-							token.Token{token.INT, "10", 5, 1},
+							token.Token{token.INT, "10", 10, 3},
 							10,
 						},
 						&StringNode{
-							token.Token{token.STRING, "test", 5, 1},
+							token.Token{token.STRING, "test", 11, 3},
 							"test",
 						},
 					},
