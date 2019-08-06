@@ -50,9 +50,13 @@ type InfixNode struct {
 
 func (n *BlockNode) String() string {
 	var sb strings.Builder
+	sb.WriteString("{\n")
 	for _, node := range n.children {
+		sb.WriteString("  ")
 		sb.WriteString(node.String())
+		sb.WriteString(";\n")
 	}
+	sb.WriteString("}\n")
 	return sb.String()
 }
 
@@ -77,7 +81,7 @@ func (n *IntNode) Token() token.Token {
 }
 
 func (n *StringNode) String() string {
-	return n.Value
+	return fmt.Sprintf("%q", n.Value)
 }
 
 func (n *StringNode) Children() []Node {
