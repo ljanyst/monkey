@@ -8,7 +8,7 @@ import (
 )
 
 type Node interface {
-	String() string
+	String(string) string
 	Children() []Node
 	Token() token.Token
 }
@@ -48,15 +48,18 @@ type InfixNode struct {
 	right Node
 }
 
-func (n *BlockNode) String() string {
+func (n *BlockNode) String(padding string) string {
 	var sb strings.Builder
+	sb.WriteString(padding)
 	sb.WriteString("{\n")
 	for _, node := range n.children {
+		sb.WriteString(padding)
 		sb.WriteString("  ")
-		sb.WriteString(node.String())
-		sb.WriteString(";\n")
+		sb.WriteString(node.String(padding + "  "))
+		sb.WriteString("\n")
 	}
-	sb.WriteString("}\n")
+	sb.WriteString(padding)
+	sb.WriteString("}")
 	return sb.String()
 }
 
@@ -68,7 +71,7 @@ func (n *BlockNode) Token() token.Token {
 	return token.Token{"", "BLOCK", 0, 0}
 }
 
-func (n *IntNode) String() string {
+func (n *IntNode) String(padding string) string {
 	return fmt.Sprintf("%d", n.Value)
 }
 
@@ -80,7 +83,7 @@ func (n *IntNode) Token() token.Token {
 	return n.token
 }
 
-func (n *StringNode) String() string {
+func (n *StringNode) String(padding string) string {
 	return fmt.Sprintf("%q", n.Value)
 }
 
@@ -92,7 +95,7 @@ func (n *StringNode) Token() token.Token {
 	return n.token
 }
 
-func (n *IdentifierNode) String() string {
+func (n *IdentifierNode) String(padding string) string {
 	return n.Value
 }
 
@@ -104,7 +107,7 @@ func (n *IdentifierNode) Token() token.Token {
 	return n.token
 }
 
-func (n *BoolNode) String() string {
+func (n *BoolNode) String(padding string) string {
 	if n.Value {
 		return "true"
 	}
@@ -119,8 +122,8 @@ func (n *BoolNode) Token() token.Token {
 	return n.token
 }
 
-func (n *PrefixNode) String() string {
-	return fmt.Sprintf("(%s %s)", n.token.Literal, n.expression)
+func (n *PrefixNode) String(padding string) string {
+	return fmt.Sprintf("(%s %s)", n.token.Literal, n.expression.String(""))
 }
 
 func (n *PrefixNode) Children() []Node {
@@ -131,8 +134,8 @@ func (n *PrefixNode) Token() token.Token {
 	return n.token
 }
 
-func (n *InfixNode) String() string {
-	return fmt.Sprintf("(%s %s %s)", n.left, n.token.Literal, n.right)
+func (n *InfixNode) String(padding string) string {
+	return fmt.Sprintf("(%s %s %s)", n.left.String(""), n.token.Literal, n.right.String(""))
 }
 
 func (n *InfixNode) Children() []Node {
