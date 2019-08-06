@@ -118,6 +118,8 @@ func TestInfixPriority(t *testing.T) {
 2 + 4 * 5 * 6 * 7;
 -12 * 7 + 12 * -8;
 -12 * 7 == 12 + -8;
+-12 * (7 + 12) * -8;
+-(12 + 4);
 `
 	expected := ProgramNode{
 		[]Node{
@@ -295,6 +297,51 @@ func TestInfixPriority(t *testing.T) {
 							token.Token{token.INT, "8", 8, 18},
 							8,
 						},
+					},
+				},
+			},
+			&InfixNode{
+				token.Token{token.ASTERISK, "*", 9, 16},
+				&InfixNode{
+					token.Token{token.ASTERISK, "*", 9, 5},
+					&PrefixNode{
+						token.Token{token.MINUS, "-", 9, 1},
+						&IntNode{
+							token.Token{token.INT, "12", 9, 2},
+							12,
+						},
+					},
+					&InfixNode{
+						token.Token{token.PLUS, "+", 9, 10},
+						&IntNode{
+							token.Token{token.INT, "7", 9, 8},
+							7,
+						},
+						&IntNode{
+							token.Token{token.INT, "12", 9, 12},
+							12,
+						},
+					},
+				},
+				&PrefixNode{
+					token.Token{token.MINUS, "-", 9, 18},
+					&IntNode{
+						token.Token{token.INT, "8", 9, 19},
+						8,
+					},
+				},
+			},
+			&PrefixNode{
+				token.Token{token.MINUS, "-", 10, 1},
+				&InfixNode{
+					token.Token{token.PLUS, "+", 10, 6},
+					&IntNode{
+						token.Token{token.INT, "12", 10, 3},
+						12,
+					},
+					&IntNode{
+						token.Token{token.INT, "4", 10, 8},
+						4,
 					},
 				},
 			},
