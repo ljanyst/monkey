@@ -51,12 +51,14 @@ func parseAndCompareAst(t *testing.T, input string, expected Node) bool {
 		t.Errorf("Parser error: %s", err)
 		return false
 	}
+
+	if *printProgram {
+		fmt.Printf("%s\n", parsed.String(""))
+	}
+
 	if !compareAst(t, parsed, expected, *printAst, "") {
 		t.Errorf("ASTs differ")
 		return false
-	} else if *printProgram {
-		fmt.Printf("%s", parsed)
-
 	}
 	return true
 }
