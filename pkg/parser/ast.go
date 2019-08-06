@@ -13,7 +13,7 @@ type Node interface {
 	Token() token.Token
 }
 
-type ProgramNode struct {
+type BlockNode struct {
 	children []Node
 }
 
@@ -48,7 +48,7 @@ type InfixNode struct {
 	right Node
 }
 
-func (n *ProgramNode) String() string {
+func (n *BlockNode) String() string {
 	var sb strings.Builder
 	for _, node := range n.children {
 		sb.WriteString(node.String())
@@ -56,12 +56,12 @@ func (n *ProgramNode) String() string {
 	return sb.String()
 }
 
-func (n *ProgramNode) Children() []Node {
+func (n *BlockNode) Children() []Node {
 	return n.children
 }
 
-func (n *ProgramNode) Token() token.Token {
-	return token.Token{"", "PROGRAM", 0, 0}
+func (n *BlockNode) Token() token.Token {
+	return token.Token{"", "BLOCK", 0, 0}
 }
 
 func (n *IntNode) String() string {

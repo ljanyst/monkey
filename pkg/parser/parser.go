@@ -189,7 +189,7 @@ func (p *Parser) parsePrimaryExpression() (Node, error) {
 }
 
 func (p *Parser) Parse() (Node, error) {
-	n := ProgramNode{}
+	n := BlockNode{}
 	for {
 		if p.nextToken().Type == token.EOF {
 			break
