@@ -9,7 +9,8 @@ import (
 	"github.com/ljanyst/monkey/pkg/token"
 )
 
-var print = flag.Bool("print-ast", false, "print the AST")
+var printAst = flag.Bool("print-ast", false, "print the AST")
+var printProgram = flag.Bool("print-program", false, "print the parsed program")
 
 func compareAst(t *testing.T, got, expected Node, print bool, depth string) bool {
 	gt := got.Token()
@@ -50,9 +51,12 @@ func parseAndCompareAst(t *testing.T, input string, expected Node) bool {
 		t.Errorf("Parser error: %s", err)
 		return false
 	}
-	if !compareAst(t, parsed, expected, *print, "") {
+	if !compareAst(t, parsed, expected, *printAst, "") {
 		t.Errorf("ASTs differ")
 		return false
+	} else if *printProgram {
+		fmt.Printf("%s", parsed)
+
 	}
 	return true
 }
@@ -67,7 +71,7 @@ false;
 -10;
 `
 
-	expected := ProgramNode{
+	expected := BlockNode{
 		[]Node{
 			&IntNode{
 				token.Token{token.INT, "10", 1, 1},
@@ -121,7 +125,7 @@ func TestInfixPriority(t *testing.T) {
 -12 * (7 + 12) * -8;
 -(12 + 4);
 `
-	expected := ProgramNode{
+	expected := BlockNode{
 		[]Node{
 			&InfixNode{
 				token.Token{token.PLUS, "+", 1, 4},
