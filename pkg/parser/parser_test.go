@@ -1,12 +1,15 @@
 package parser
 
 import (
+	"flag"
 	"fmt"
 	"testing"
 
 	"github.com/ljanyst/monkey/pkg/lexer"
 	"github.com/ljanyst/monkey/pkg/token"
 )
+
+var print = flag.Bool("print-ast", false, "print the AST")
 
 func compareAst(t *testing.T, got, expected Node, print bool, depth string) bool {
 	gt := got.Token()
@@ -47,7 +50,7 @@ func parseAndCompareAst(t *testing.T, input string, expected Node) bool {
 		t.Errorf("Parser error: %s", err)
 		return false
 	}
-	if !compareAst(t, parsed, expected, false, "") {
+	if !compareAst(t, parsed, expected, *print, "") {
 		t.Errorf("ASTs differ")
 		return false
 	}
