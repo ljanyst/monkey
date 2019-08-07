@@ -456,3 +456,69 @@ if (!flag) {
 
 	parseAndCompareAst(t, input, &expected)
 }
+
+func TestLetReturnAssign(t *testing.T) {
+	input := `
+let test = 10 + 2 * 6;
+return !true;
+test = !false;
+`
+	expected := BlockNode{
+		[]Node{
+			&StatementNode{
+				token.Token{token.LET, "let", 2, 1},
+				&InfixNode{
+					token.Token{token.ASSIGN, "=", 2, 10},
+					&IdentifierNode{
+						token.Token{token.IDENT, "test", 2, 5},
+						"test",
+					},
+					&InfixNode{
+						token.Token{token.PLUS, "+", 2, 15},
+						&IntNode{
+							token.Token{token.INT, "10", 2, 12},
+							10,
+						},
+						&InfixNode{
+							token.Token{token.ASTERISK, "*", 2, 19},
+							&IntNode{
+								token.Token{token.INT, "2", 2, 17},
+								2,
+							},
+							&IntNode{
+								token.Token{token.INT, "6", 2, 21},
+								6,
+							},
+						},
+					},
+				},
+			},
+			&StatementNode{
+				token.Token{token.RETURN, "return", 3, 1},
+				&PrefixNode{
+					token.Token{token.BANG, "!", 3, 8},
+					&BoolNode{
+						token.Token{token.TRUE, "true", 3, 9},
+						true,
+					},
+				},
+			},
+			&InfixNode{
+				token.Token{token.ASSIGN, "=", 4, 6},
+				&IdentifierNode{
+					token.Token{token.IDENT, "test", 4, 1},
+					"test",
+				},
+				&PrefixNode{
+					token.Token{token.BANG, "!", 4, 8},
+					&BoolNode{
+						token.Token{token.FALSE, "false", 4, 9},
+						false,
+					},
+				},
+			},
+		},
+	}
+
+	parseAndCompareAst(t, input, &expected)
+}
