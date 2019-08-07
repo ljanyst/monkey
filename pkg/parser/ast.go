@@ -55,6 +55,11 @@ type ConditionalNode struct {
 	alternative Node
 }
 
+type StatementNode struct {
+	token      token.Token
+	expression Node
+}
+
 func (n *BlockNode) String(padding string) string {
 	var sb strings.Builder
 	sb.WriteString(padding)
@@ -169,5 +174,17 @@ func (n *ConditionalNode) Children() []Node {
 }
 
 func (n *ConditionalNode) Token() token.Token {
+	return n.token
+}
+
+func (n *StatementNode) String(padding string) string {
+	return fmt.Sprintf("%s %s", n.token.Literal, n.expression.String(""))
+}
+
+func (n *StatementNode) Children() []Node {
+	return []Node{n.expression}
+}
+
+func (n *StatementNode) Token() token.Token {
 	return n.token
 }

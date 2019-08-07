@@ -10,6 +10,7 @@ import (
 
 const (
 	LOWEST = iota
+	ASSIGN
 	COMPARISON
 	SUM
 	PRODUCT
@@ -47,7 +48,7 @@ func (p *Parser) mkErrWrongToken(expected string, got token.Token) error {
 }
 
 func (p *Parser) mkErrUnexpectedToken(got token.Token) error {
-	return fmt.Errorf("Parsing error: don't know what to do with %q at %d:%d",
+	return fmt.Errorf("Parsing error: Unexpected token %q at %d:%d",
 		got.Literal, got.Line, got.Column)
 }
 
@@ -185,6 +186,31 @@ func (p *Parser) parseConditional() (Node, error) {
 	return exp, nil
 }
 
+func (p *Parser) parseAssign(left Node) (Node, error) {
+	if left.Token().Type != token.IDENT {
+		return nil, p.mkErrWrongToken("identifier", left.Token())
+	}
+
+	tok := p.lexer.ReadToken()
+
+	right, err := p.parseExpression(LOWEST)
+	if err != nil {
+		return nil, err
+	}
+
+	return &InfixNode{tok, left, right}, nil
+}
+
+func (p *Parser) parseStatement() (Node, error) {
+	tok := p.lexer.ReadToken()
+
+	exp, err := p.parseExpression(LOWEST)
+	if err != nil {
+		return nil, err
+	}
+	return &StatementNode{tok, exp}, nil
+}
+
 func (p *Parser) getPriority(token token.Token) int {
 	if prio, ok := p.priorities[token.Type]; ok {
 		return prio
@@ -238,7 +264,15 @@ func (p *Parser) parseExpression(priority int) (Node, error) {
 }
 
 func (p *Parser) parsePrimaryExpression() (Node, error) {
-	node, err := p.parseExpression(LOWEST)
+	var node Node
+	var err error
+	switch p.nextToken().Type {
+	case token.LET, token.RETURN:
+		node, err = p.parseStatement()
+	default:
+		node, err = p.parseExpression(LOWEST)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -288,6 +322,7 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	} {
 		p.infixParsers[t] = p.parseInfix
 	}
+	p.infixParsers[token.ASSIGN] = p.parseAssign
 
 	p.priorities = make(map[token.TokenType]int)
 	p.priorities[token.MINUS] = SUM
@@ -300,5 +335,6 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.priorities[token.LE] = COMPARISON
 	p.priorities[token.GT] = COMPARISON
 	p.priorities[token.GE] = COMPARISON
+	p.priorities[token.ASSIGN] = ASSIGN
 	return p
 }
