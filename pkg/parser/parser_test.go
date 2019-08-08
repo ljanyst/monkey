@@ -522,3 +522,117 @@ test = !false;
 
 	parseAndCompareAst(t, input, &expected)
 }
+
+func TestFunction(t *testing.T) {
+	input := `
+let test = fn(a, b, c) {
+  return a * b + c;
+};
+test = fn() {
+  !true;
+};
+fn(b) {
+  return b;
+};
+`
+	expected := BlockNode{
+		[]Node{
+			&StatementNode{
+				token.Token{token.LET, "let", 2, 1},
+				&InfixNode{
+					token.Token{token.ASSIGN, "=", 2, 10},
+					&IdentifierNode{
+						token.Token{token.IDENT, "test", 2, 5},
+						"test",
+					},
+					&FunctionNode{
+						token.Token{token.FUNCTION, "fn", 2, 12},
+						[]Node{
+							&IdentifierNode{
+								token.Token{token.IDENT, "a", 2, 15},
+								"a",
+							},
+							&IdentifierNode{
+								token.Token{token.IDENT, "b", 2, 18},
+								"b",
+							},
+							&IdentifierNode{
+								token.Token{token.IDENT, "c", 2, 21},
+								"c",
+							},
+						},
+						&BlockNode{
+							[]Node{
+								&StatementNode{
+									token.Token{token.RETURN, "return", 3, 1},
+									&InfixNode{
+										token.Token{token.PLUS, "+", 3, 12},
+										&InfixNode{
+											token.Token{token.ASTERISK, "*", 3, 4},
+											&IdentifierNode{
+												token.Token{token.IDENT, "a", 3, 10},
+												"a",
+											},
+											&IdentifierNode{
+												token.Token{token.IDENT, "b", 3, 14},
+												"b",
+											},
+										},
+										&IdentifierNode{
+											token.Token{token.IDENT, "c", 3, 18},
+											"c",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			&InfixNode{
+				token.Token{token.ASSIGN, "=", 5, 6},
+				&IdentifierNode{
+					token.Token{token.IDENT, "test", 5, 1},
+					"test",
+				},
+				&FunctionNode{
+					token.Token{token.FUNCTION, "fn", 5, 8},
+					[]Node{},
+					&BlockNode{
+						[]Node{
+							&PrefixNode{
+								token.Token{token.BANG, "!", 6, 3},
+								&BoolNode{
+									token.Token{token.TRUE, "true", 6, 4},
+									true,
+								},
+							},
+						},
+					},
+				},
+			},
+			&FunctionNode{
+				token.Token{token.FUNCTION, "fn", 8, 1},
+				[]Node{
+					&IdentifierNode{
+						token.Token{token.IDENT, "b", 8, 4},
+						"b",
+					},
+				},
+				&BlockNode{
+					[]Node{
+						&StatementNode{
+							token.Token{token.RETURN, "return", 9, 3},
+							&IdentifierNode{
+								token.Token{token.IDENT, "b", 9, 10},
+								"b",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	parseAndCompareAst(t, input, &expected)
+}
