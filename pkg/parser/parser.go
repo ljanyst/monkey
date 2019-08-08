@@ -211,6 +211,46 @@ func (p *Parser) parseStatement() (Node, error) {
 	return &StatementNode{tok, exp}, nil
 }
 
+func (p *Parser) parseFunction() (Node, error) {
+	fnTok := p.lexer.ReadToken()
+
+	tok := p.lexer.ReadToken()
+	if tok.Type != token.LPAREN {
+		return nil, p.mkErrWrongToken("(", tok)
+	}
+
+	params := []Node{}
+
+	for {
+		tok = p.nextToken()
+		if tok.Type == token.RPAREN {
+			p.lexer.ReadToken()
+			break
+		}
+
+		ident, err := p.parseIdent()
+		if err != nil {
+			return nil, err
+		}
+		params = append(params, ident)
+
+		tok = p.nextToken()
+		if tok.Type != token.COMMA && tok.Type != token.RPAREN {
+			return nil, p.mkErrWrongToken(", or )", tok)
+		}
+		if tok.Type == token.COMMA {
+			p.lexer.ReadToken()
+		}
+	}
+
+	body, err := p.parseBlock()
+	if err != nil {
+		return nil, err
+	}
+
+	return &FunctionNode{fnTok, params, body}, nil
+}
+
 func (p *Parser) getPriority(token token.Token) int {
 	if prio, ok := p.priorities[token.Type]; ok {
 		return prio
@@ -314,6 +354,7 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.prefixParsers[token.MINUS] = p.parsePrefix
 	p.prefixParsers[token.LPAREN] = p.parseParen
 	p.prefixParsers[token.IF] = p.parseConditional
+	p.prefixParsers[token.FUNCTION] = p.parseFunction
 
 	p.infixParsers = make(map[token.TokenType]infixParseFn)
 	for _, t := range []token.TokenType{

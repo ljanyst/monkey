@@ -60,6 +60,12 @@ type StatementNode struct {
 	expression Node
 }
 
+type FunctionNode struct {
+	token  token.Token
+	params []Node
+	body   Node
+}
+
 func (n *BlockNode) String(padding string) string {
 	var sb strings.Builder
 	sb.WriteString(padding)
@@ -135,7 +141,7 @@ func (n *BoolNode) Token() token.Token {
 }
 
 func (n *PrefixNode) String(padding string) string {
-	return fmt.Sprintf("(%s %s)", n.token.Literal, n.expression.String(""))
+	return fmt.Sprintf("(%s %s)", n.token.Literal, n.expression.String(padding))
 }
 
 func (n *PrefixNode) Children() []Node {
@@ -147,7 +153,7 @@ func (n *PrefixNode) Token() token.Token {
 }
 
 func (n *InfixNode) String(padding string) string {
-	return fmt.Sprintf("(%s %s %s)", n.left.String(""), n.token.Literal, n.right.String(""))
+	return fmt.Sprintf("(%s %s %s)", n.left.String(padding), n.token.Literal, n.right.String(padding))
 }
 
 func (n *InfixNode) Children() []Node {
@@ -160,7 +166,7 @@ func (n *InfixNode) Token() token.Token {
 
 func (n *ConditionalNode) String(padding string) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("if %s\n", n.condition.String("")))
+	sb.WriteString(fmt.Sprintf("if %s\n", n.condition.String(padding)))
 	sb.WriteString(n.consequent.String(padding))
 	if n.alternative != nil {
 		sb.WriteString(fmt.Sprintf("\n%selse\n", padding))
@@ -178,7 +184,7 @@ func (n *ConditionalNode) Token() token.Token {
 }
 
 func (n *StatementNode) String(padding string) string {
-	return fmt.Sprintf("%s %s", n.token.Literal, n.expression.String(""))
+	return fmt.Sprintf("%s %s", n.token.Literal, n.expression.String(padding))
 }
 
 func (n *StatementNode) Children() []Node {
@@ -186,5 +192,27 @@ func (n *StatementNode) Children() []Node {
 }
 
 func (n *StatementNode) Token() token.Token {
+	return n.token
+}
+
+func (n *FunctionNode) String(padding string) string {
+	var sb strings.Builder
+	sb.WriteString("fn(")
+	for i, param := range n.params {
+		sb.WriteString(param.String(padding))
+		if i < len(n.params)-1 {
+			sb.WriteString(", ")
+		}
+	}
+	sb.WriteString(")\n")
+	sb.WriteString(n.body.String(padding))
+	return sb.String()
+}
+
+func (n *FunctionNode) Children() []Node {
+	return append(n.params, n.body)
+}
+
+func (n *FunctionNode) Token() token.Token {
 	return n.token
 }
