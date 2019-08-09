@@ -251,6 +251,33 @@ func (p *Parser) parseFunction() (Node, error) {
 	return &FunctionNode{fnTok, params, body}, nil
 }
 
+func (p *Parser) parseFunctionCall(left Node) (Node, error) {
+	parenTok := p.lexer.ReadToken()
+
+	args := []Node{}
+
+	for {
+		tok := p.nextToken()
+		if tok.Type == token.RPAREN {
+			p.lexer.ReadToken()
+			break
+		}
+
+		exp, err := p.parseExpression(LOWEST)
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, exp)
+
+		tok = p.nextToken()
+		if tok.Type == token.COMMA {
+			p.lexer.ReadToken()
+		}
+	}
+
+	return &FunctionCallNode{parenTok, left, args}, nil
+}
+
 func (p *Parser) getPriority(token token.Token) int {
 	if prio, ok := p.priorities[token.Type]; ok {
 		return prio
@@ -364,6 +391,7 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 		p.infixParsers[t] = p.parseInfix
 	}
 	p.infixParsers[token.ASSIGN] = p.parseAssign
+	p.infixParsers[token.LPAREN] = p.parseFunctionCall
 
 	p.priorities = make(map[token.TokenType]int)
 	p.priorities[token.MINUS] = SUM
@@ -377,5 +405,6 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.priorities[token.GT] = COMPARISON
 	p.priorities[token.GE] = COMPARISON
 	p.priorities[token.ASSIGN] = ASSIGN
+	p.priorities[token.LPAREN] = CALL
 	return p
 }

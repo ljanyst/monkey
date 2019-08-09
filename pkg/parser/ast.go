@@ -66,6 +66,12 @@ type FunctionNode struct {
 	body   Node
 }
 
+type FunctionCallNode struct {
+	token token.Token
+	name  Node
+	args  []Node
+}
+
 func (n *BlockNode) String(padding string) string {
 	var sb strings.Builder
 	sb.WriteString(padding)
@@ -214,5 +220,26 @@ func (n *FunctionNode) Children() []Node {
 }
 
 func (n *FunctionNode) Token() token.Token {
+	return n.token
+}
+
+func (n *FunctionCallNode) String(padding string) string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("%s(", n.name.String(padding)))
+	for i, arg := range n.args {
+		sb.WriteString(arg.String(padding))
+		if i < len(n.args)-1 {
+			sb.WriteString(", ")
+		}
+	}
+	sb.WriteString(")")
+	return sb.String()
+}
+
+func (n *FunctionCallNode) Children() []Node {
+	return append([]Node{n.name}, n.args...)
+}
+
+func (n *FunctionCallNode) Token() token.Token {
 	return n.token
 }
