@@ -6,14 +6,19 @@ import (
 	"strings"
 
 	"github.com/ljanyst/monkey/pkg/lexer"
-	"github.com/ljanyst/monkey/pkg/token"
+	"github.com/ljanyst/monkey/pkg/parser"
 )
 
 func EvalReader(reader io.Reader) error {
 	l := lexer.NewLexerFromReader(reader)
-	for tok := l.ReadToken(); tok.Type != token.EOF; tok = l.ReadToken() {
-		fmt.Printf("%v %s (%d:%d)\n", tok.Type, tok.Literal, tok.Line, tok.Column)
+	p := parser.NewParser(l)
+	program, err := p.Parse()
+	if err != nil {
+		return err
 	}
+
+	fmt.Printf("%s\n", program.String(""))
+
 	return nil
 }
 
