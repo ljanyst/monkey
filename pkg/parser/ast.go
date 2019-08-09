@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ljanyst/monkey/pkg/token"
+	"github.com/ljanyst/monkey/pkg/lexer"
 )
 
 type Node interface {
 	String(string) string
 	Children() []Node
-	Token() token.Token
+	Token() lexer.Token
 }
 
 type BlockNode struct {
@@ -18,56 +18,56 @@ type BlockNode struct {
 }
 
 type IntNode struct {
-	token token.Token
+	token lexer.Token
 	Value int64
 }
 
 type StringNode struct {
-	token token.Token
+	token lexer.Token
 	Value string
 }
 
 type IdentifierNode struct {
-	token token.Token
+	token lexer.Token
 	Value string
 }
 
 type BoolNode struct {
-	token token.Token
+	token lexer.Token
 	Value bool
 }
 
 type PrefixNode struct {
-	token      token.Token
+	token      lexer.Token
 	expression Node
 }
 
 type InfixNode struct {
-	token token.Token
+	token lexer.Token
 	left  Node
 	right Node
 }
 
 type ConditionalNode struct {
-	token       token.Token
+	token       lexer.Token
 	condition   Node
 	consequent  Node
 	alternative Node
 }
 
 type StatementNode struct {
-	token      token.Token
+	token      lexer.Token
 	expression Node
 }
 
 type FunctionNode struct {
-	token  token.Token
+	token  lexer.Token
 	params []Node
 	body   Node
 }
 
 type FunctionCallNode struct {
-	token token.Token
+	token lexer.Token
 	name  Node
 	args  []Node
 }
@@ -91,8 +91,8 @@ func (n *BlockNode) Children() []Node {
 	return n.children
 }
 
-func (n *BlockNode) Token() token.Token {
-	return token.Token{"", "BLOCK", 0, 0}
+func (n *BlockNode) Token() lexer.Token {
+	return lexer.Token{"", "BLOCK", 0, 0}
 }
 
 func (n *IntNode) String(padding string) string {
@@ -103,7 +103,7 @@ func (n *IntNode) Children() []Node {
 	return []Node{}
 }
 
-func (n *IntNode) Token() token.Token {
+func (n *IntNode) Token() lexer.Token {
 	return n.token
 }
 
@@ -115,7 +115,7 @@ func (n *StringNode) Children() []Node {
 	return []Node{}
 }
 
-func (n *StringNode) Token() token.Token {
+func (n *StringNode) Token() lexer.Token {
 	return n.token
 }
 
@@ -127,7 +127,7 @@ func (n *IdentifierNode) Children() []Node {
 	return []Node{}
 }
 
-func (n *IdentifierNode) Token() token.Token {
+func (n *IdentifierNode) Token() lexer.Token {
 	return n.token
 }
 
@@ -142,7 +142,7 @@ func (n *BoolNode) Children() []Node {
 	return []Node{}
 }
 
-func (n *BoolNode) Token() token.Token {
+func (n *BoolNode) Token() lexer.Token {
 	return n.token
 }
 
@@ -154,7 +154,7 @@ func (n *PrefixNode) Children() []Node {
 	return []Node{n.expression}
 }
 
-func (n *PrefixNode) Token() token.Token {
+func (n *PrefixNode) Token() lexer.Token {
 	return n.token
 }
 
@@ -166,7 +166,7 @@ func (n *InfixNode) Children() []Node {
 	return []Node{n.left, n.right}
 }
 
-func (n *InfixNode) Token() token.Token {
+func (n *InfixNode) Token() lexer.Token {
 	return n.token
 }
 
@@ -185,7 +185,7 @@ func (n *ConditionalNode) Children() []Node {
 	return []Node{n.condition, n.consequent, n.alternative}
 }
 
-func (n *ConditionalNode) Token() token.Token {
+func (n *ConditionalNode) Token() lexer.Token {
 	return n.token
 }
 
@@ -197,7 +197,7 @@ func (n *StatementNode) Children() []Node {
 	return []Node{n.expression}
 }
 
-func (n *StatementNode) Token() token.Token {
+func (n *StatementNode) Token() lexer.Token {
 	return n.token
 }
 
@@ -219,7 +219,7 @@ func (n *FunctionNode) Children() []Node {
 	return append(n.params, n.body)
 }
 
-func (n *FunctionNode) Token() token.Token {
+func (n *FunctionNode) Token() lexer.Token {
 	return n.token
 }
 
@@ -240,6 +240,6 @@ func (n *FunctionCallNode) Children() []Node {
 	return append([]Node{n.name}, n.args...)
 }
 
-func (n *FunctionCallNode) Token() token.Token {
+func (n *FunctionCallNode) Token() lexer.Token {
 	return n.token
 }

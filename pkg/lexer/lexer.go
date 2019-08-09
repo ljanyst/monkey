@@ -5,8 +5,6 @@ import (
 	"io"
 	"strings"
 	"unicode"
-
-	"github.com/ljanyst/monkey/pkg/token"
 )
 
 type Lexer struct {
@@ -14,7 +12,7 @@ type Lexer struct {
 	line       uint32
 	column     uint32
 	curRune    rune
-	curToken   token.Token
+	curToken   Token
 	retCurrent bool
 }
 
@@ -29,8 +27,8 @@ func NewLexerFromReader(input io.Reader) *Lexer {
 	return l
 }
 
-func (l *Lexer) mkToken(t token.TokenType) token.Token {
-	return token.Token{t, string(l.curRune), l.line, l.column}
+func (l *Lexer) mkToken(t TokenType) Token {
+	return Token{t, string(l.curRune), l.line, l.column}
 }
 
 func (l *Lexer) maybeConsume(r rune) bool {
@@ -64,24 +62,24 @@ func (l *Lexer) gather(pred func(rune) bool) string {
 	return string(group)
 }
 
-func (l *Lexer) readIdentifier() token.Token {
+func (l *Lexer) readIdentifier() Token {
 	startCol := l.column
 	pred := func(r rune) bool {
 		return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_'
 	}
 	ident := l.gather(pred)
 
-	return token.Token{token.IDENT, ident, l.line, startCol}
+	return Token{IDENT, ident, l.line, startCol}
 }
 
-func (l *Lexer) readNumber() token.Token {
+func (l *Lexer) readNumber() Token {
 	startCol := l.column
 	number := l.gather(unicode.IsDigit)
 
-	return token.Token{token.INT, number, l.line, startCol}
+	return Token{INT, number, l.line, startCol}
 }
 
-func (l *Lexer) readString() token.Token {
+func (l *Lexer) readString() Token {
 	startCol := l.column
 	str := []rune{}
 
@@ -91,7 +89,7 @@ func (l *Lexer) readString() token.Token {
 
 	for {
 		if !l.maybeConsumePred(pred) {
-			return token.Token{token.INVALID, string(append([]rune{'"'}, str...)), l.line, startCol}
+			return Token{INVALID, string(append([]rune{'"'}, str...)), l.line, startCol}
 		}
 
 		if l.curRune == '"' {
@@ -99,15 +97,15 @@ func (l *Lexer) readString() token.Token {
 		}
 		str = append(str, l.curRune)
 	}
-	return token.Token{token.STRING, string(str), l.line, startCol}
+	return Token{STRING, string(str), l.line, startCol}
 }
 
-func (l *Lexer) nextToken() token.Token {
+func (l *Lexer) nextToken() Token {
 	for {
 		var err error
 		l.curRune, _, err = l.reader.ReadRune()
 		if err != nil {
-			return token.Token{token.EOF, "", l.line, l.column}
+			return Token{EOF, "", l.line, l.column}
 		}
 
 		if l.curRune == '\n' {
@@ -124,48 +122,48 @@ func (l *Lexer) nextToken() token.Token {
 		switch l.curRune {
 		case '=':
 			if l.maybeConsume('=') {
-				return token.Token{token.EQ, "==", l.line, l.column - 1}
+				return Token{EQ, "==", l.line, l.column - 1}
 			}
-			return l.mkToken(token.ASSIGN)
+			return l.mkToken(ASSIGN)
 		case ';':
-			return l.mkToken(token.SEMICOLON)
+			return l.mkToken(SEMICOLON)
 		case '(':
-			return l.mkToken(token.LPAREN)
+			return l.mkToken(LPAREN)
 		case ',':
-			return l.mkToken(token.COMMA)
+			return l.mkToken(COMMA)
 		case ')':
-			return l.mkToken(token.RPAREN)
+			return l.mkToken(RPAREN)
 		case '{':
-			return l.mkToken(token.LBRACE)
+			return l.mkToken(LBRACE)
 		case '+':
-			return l.mkToken(token.PLUS)
+			return l.mkToken(PLUS)
 		case '}':
-			return l.mkToken(token.RBRACE)
+			return l.mkToken(RBRACE)
 		case '!':
 			if l.maybeConsume('=') {
-				return token.Token{token.NOT_EQ, "!=", l.line, l.column - 1}
+				return Token{NOT_EQ, "!=", l.line, l.column - 1}
 			}
-			return l.mkToken(token.BANG)
+			return l.mkToken(BANG)
 		case '-':
-			return l.mkToken(token.MINUS)
+			return l.mkToken(MINUS)
 		case '/':
-			return l.mkToken(token.SLASH)
+			return l.mkToken(SLASH)
 		case '*':
-			return l.mkToken(token.ASTERISK)
+			return l.mkToken(ASTERISK)
 		case '<':
 			if l.maybeConsume('=') {
-				return token.Token{token.LE, "<=", l.line, l.column - 1}
+				return Token{LE, "<=", l.line, l.column - 1}
 			}
-			return l.mkToken(token.LT)
+			return l.mkToken(LT)
 		case '>':
 			if l.maybeConsume('=') {
-				return token.Token{token.GE, ">=", l.line, l.column - 1}
+				return Token{GE, ">=", l.line, l.column - 1}
 			}
-			return l.mkToken(token.GT)
+			return l.mkToken(GT)
 		default:
 			if unicode.IsLetter(l.curRune) {
 				ident := l.readIdentifier()
-				tokenType := token.LookupKeyword(ident.Literal)
+				tokenType := LookupKeyword(ident.Literal)
 				ident.Type = tokenType
 				return ident
 			} else if unicode.IsDigit(l.curRune) {
@@ -173,12 +171,12 @@ func (l *Lexer) nextToken() token.Token {
 			} else if l.curRune == '"' {
 				return l.readString()
 			}
-			return l.mkToken(token.INVALID)
+			return l.mkToken(INVALID)
 		}
 	}
 }
 
-func (l *Lexer) ReadToken() token.Token {
+func (l *Lexer) ReadToken() Token {
 	if l.retCurrent {
 		l.retCurrent = false
 	} else {

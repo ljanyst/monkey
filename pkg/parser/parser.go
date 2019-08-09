@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/ljanyst/monkey/pkg/lexer"
-	"github.com/ljanyst/monkey/pkg/token"
 )
 
 const (
@@ -26,20 +25,20 @@ type (
 type Parser struct {
 	lexer *lexer.Lexer
 
-	infixParsers  map[token.TokenType]infixParseFn
-	prefixParsers map[token.TokenType]prefixParseFn
-	priorities    map[token.TokenType]int
+	infixParsers  map[lexer.TokenType]infixParseFn
+	prefixParsers map[lexer.TokenType]prefixParseFn
+	priorities    map[lexer.TokenType]int
 }
 
-func (p *Parser) nextToken() token.Token {
+func (p *Parser) nextToken() lexer.Token {
 	tok := p.lexer.ReadToken()
 	p.lexer.UnreadToken()
 	return tok
 }
 
-func (p *Parser) mkErrWrongToken(expected string, got token.Token) error {
+func (p *Parser) mkErrWrongToken(expected string, got lexer.Token) error {
 	lit := got.Literal
-	if got.Type == token.EOF {
+	if got.Type == lexer.EOF {
 		lit = "end of input"
 	}
 	return fmt.Errorf("Parsing error: expected %s, got %s at %d:%d",
@@ -47,14 +46,14 @@ func (p *Parser) mkErrWrongToken(expected string, got token.Token) error {
 		got.Line, got.Column)
 }
 
-func (p *Parser) mkErrUnexpectedToken(got token.Token) error {
+func (p *Parser) mkErrUnexpectedToken(got lexer.Token) error {
 	return fmt.Errorf("Parsing error: Unexpected token %q at %d:%d",
 		got.Literal, got.Line, got.Column)
 }
 
 func (p *Parser) parseInt() (Node, error) {
 	tok := p.lexer.ReadToken()
-	if tok.Type != token.INT {
+	if tok.Type != lexer.INT {
 		return nil, p.mkErrWrongToken("integer", tok)
 	}
 
@@ -68,7 +67,7 @@ func (p *Parser) parseInt() (Node, error) {
 
 func (p *Parser) parseString() (Node, error) {
 	tok := p.lexer.ReadToken()
-	if tok.Type != token.STRING {
+	if tok.Type != lexer.STRING {
 		return nil, p.mkErrWrongToken("string", tok)
 	}
 	return &StringNode{tok, tok.Literal}, nil
@@ -76,7 +75,7 @@ func (p *Parser) parseString() (Node, error) {
 
 func (p *Parser) parseIdent() (Node, error) {
 	tok := p.lexer.ReadToken()
-	if tok.Type != token.IDENT {
+	if tok.Type != lexer.IDENT {
 		return nil, p.mkErrWrongToken("identifier", tok)
 	}
 	return &IdentifierNode{tok, tok.Literal}, nil
@@ -84,10 +83,10 @@ func (p *Parser) parseIdent() (Node, error) {
 
 func (p *Parser) parseBool() (Node, error) {
 	tok := p.lexer.ReadToken()
-	if tok.Type != token.TRUE && tok.Type != token.FALSE {
+	if tok.Type != lexer.TRUE && tok.Type != lexer.FALSE {
 		return nil, p.mkErrWrongToken("boolean", tok)
 	}
-	if tok.Type == token.TRUE {
+	if tok.Type == lexer.TRUE {
 		return &BoolNode{tok, true}, nil
 	}
 	return &BoolNode{tok, false}, nil
@@ -118,7 +117,7 @@ func (p *Parser) parseParen() (Node, error) {
 		return nil, err
 	}
 	tok = p.lexer.ReadToken()
-	if tok.Type != token.RPAREN {
+	if tok.Type != lexer.RPAREN {
 		return nil, p.mkErrWrongToken(")", tok)
 	}
 	return exp, nil
@@ -128,12 +127,12 @@ func (p *Parser) parseBlock() (Node, error) {
 	n := BlockNode{}
 
 	tok := p.lexer.ReadToken()
-	if tok.Type != token.LBRACE {
+	if tok.Type != lexer.LBRACE {
 		return nil, p.mkErrWrongToken("{", tok)
 	}
 
 	for {
-		if p.nextToken().Type == token.RBRACE {
+		if p.nextToken().Type == lexer.RBRACE {
 			break
 		}
 
@@ -145,7 +144,7 @@ func (p *Parser) parseBlock() (Node, error) {
 	}
 
 	tok = p.lexer.ReadToken()
-	if tok.Type != token.RBRACE {
+	if tok.Type != lexer.RBRACE {
 		return nil, p.mkErrWrongToken("}", tok)
 	}
 
@@ -156,7 +155,7 @@ func (p *Parser) parseConditional() (Node, error) {
 	ifTok := p.lexer.ReadToken()
 	tok := p.lexer.ReadToken()
 
-	if tok.Type != token.LPAREN {
+	if tok.Type != lexer.LPAREN {
 		return nil, p.mkErrWrongToken("(", tok)
 	}
 
@@ -166,7 +165,7 @@ func (p *Parser) parseConditional() (Node, error) {
 	}
 
 	tok = p.lexer.ReadToken()
-	if tok.Type != token.RPAREN {
+	if tok.Type != lexer.RPAREN {
 		return nil, p.mkErrWrongToken(")", tok)
 	}
 
@@ -176,7 +175,7 @@ func (p *Parser) parseConditional() (Node, error) {
 	}
 
 	var alternative Node
-	if p.nextToken().Type == token.ELSE {
+	if p.nextToken().Type == lexer.ELSE {
 		tok = p.lexer.ReadToken()
 		alternative, err = p.parseBlock()
 	}
@@ -187,7 +186,7 @@ func (p *Parser) parseConditional() (Node, error) {
 }
 
 func (p *Parser) parseAssign(left Node) (Node, error) {
-	if left.Token().Type != token.IDENT {
+	if left.Token().Type != lexer.IDENT {
 		return nil, p.mkErrWrongToken("identifier", left.Token())
 	}
 
@@ -215,7 +214,7 @@ func (p *Parser) parseFunction() (Node, error) {
 	fnTok := p.lexer.ReadToken()
 
 	tok := p.lexer.ReadToken()
-	if tok.Type != token.LPAREN {
+	if tok.Type != lexer.LPAREN {
 		return nil, p.mkErrWrongToken("(", tok)
 	}
 
@@ -223,7 +222,7 @@ func (p *Parser) parseFunction() (Node, error) {
 
 	for {
 		tok = p.nextToken()
-		if tok.Type == token.RPAREN {
+		if tok.Type == lexer.RPAREN {
 			p.lexer.ReadToken()
 			break
 		}
@@ -235,10 +234,10 @@ func (p *Parser) parseFunction() (Node, error) {
 		params = append(params, ident)
 
 		tok = p.nextToken()
-		if tok.Type != token.COMMA && tok.Type != token.RPAREN {
+		if tok.Type != lexer.COMMA && tok.Type != lexer.RPAREN {
 			return nil, p.mkErrWrongToken(", or )", tok)
 		}
-		if tok.Type == token.COMMA {
+		if tok.Type == lexer.COMMA {
 			p.lexer.ReadToken()
 		}
 	}
@@ -258,7 +257,7 @@ func (p *Parser) parseFunctionCall(left Node) (Node, error) {
 
 	for {
 		tok := p.nextToken()
-		if tok.Type == token.RPAREN {
+		if tok.Type == lexer.RPAREN {
 			p.lexer.ReadToken()
 			break
 		}
@@ -270,7 +269,7 @@ func (p *Parser) parseFunctionCall(left Node) (Node, error) {
 		args = append(args, exp)
 
 		tok = p.nextToken()
-		if tok.Type == token.COMMA {
+		if tok.Type == lexer.COMMA {
 			p.lexer.ReadToken()
 		}
 	}
@@ -278,16 +277,16 @@ func (p *Parser) parseFunctionCall(left Node) (Node, error) {
 	return &FunctionCallNode{parenTok, left, args}, nil
 }
 
-func (p *Parser) getPriority(token token.Token) int {
+func (p *Parser) getPriority(token lexer.Token) int {
 	if prio, ok := p.priorities[token.Type]; ok {
 		return prio
 	}
 	return LOWEST
 }
 
-func isTerminator(tok token.Token) bool {
+func isTerminator(tok lexer.Token) bool {
 	switch tok.Type {
-	case token.RPAREN:
+	case lexer.RPAREN:
 		return true
 	default:
 		return false
@@ -309,7 +308,7 @@ func (p *Parser) parseExpression(priority int) (Node, error) {
 
 	for {
 		tok = p.nextToken()
-		if priority >= p.getPriority(tok) || tok.Type == token.SEMICOLON {
+		if priority >= p.getPriority(tok) || tok.Type == lexer.SEMICOLON {
 			break
 		}
 		infixParser, hasParser := p.infixParsers[tok.Type]
@@ -334,7 +333,7 @@ func (p *Parser) parsePrimaryExpression() (Node, error) {
 	var node Node
 	var err error
 	switch p.nextToken().Type {
-	case token.LET, token.RETURN:
+	case lexer.LET, lexer.RETURN:
 		node, err = p.parseStatement()
 	default:
 		node, err = p.parseExpression(LOWEST)
@@ -345,7 +344,7 @@ func (p *Parser) parsePrimaryExpression() (Node, error) {
 	}
 
 	tok := p.lexer.ReadToken()
-	if tok.Type != token.SEMICOLON {
+	if tok.Type != lexer.SEMICOLON {
 		return nil, p.mkErrWrongToken("semicolon", tok)
 	}
 	return node, nil
@@ -354,7 +353,7 @@ func (p *Parser) parsePrimaryExpression() (Node, error) {
 func (p *Parser) Parse() (Node, error) {
 	n := BlockNode{}
 	for {
-		if p.nextToken().Type == token.EOF {
+		if p.nextToken().Type == lexer.EOF {
 			break
 		}
 
@@ -367,44 +366,44 @@ func (p *Parser) Parse() (Node, error) {
 	return &n, nil
 }
 
-func NewParser(lexer *lexer.Lexer) *Parser {
+func NewParser(lex *lexer.Lexer) *Parser {
 	p := new(Parser)
-	p.lexer = lexer
+	p.lexer = lex
 
-	p.prefixParsers = make(map[token.TokenType]prefixParseFn)
-	p.prefixParsers[token.INT] = p.parseInt
-	p.prefixParsers[token.STRING] = p.parseString
-	p.prefixParsers[token.IDENT] = p.parseIdent
-	p.prefixParsers[token.TRUE] = p.parseBool
-	p.prefixParsers[token.FALSE] = p.parseBool
-	p.prefixParsers[token.BANG] = p.parsePrefix
-	p.prefixParsers[token.MINUS] = p.parsePrefix
-	p.prefixParsers[token.LPAREN] = p.parseParen
-	p.prefixParsers[token.IF] = p.parseConditional
-	p.prefixParsers[token.FUNCTION] = p.parseFunction
+	p.prefixParsers = make(map[lexer.TokenType]prefixParseFn)
+	p.prefixParsers[lexer.INT] = p.parseInt
+	p.prefixParsers[lexer.STRING] = p.parseString
+	p.prefixParsers[lexer.IDENT] = p.parseIdent
+	p.prefixParsers[lexer.TRUE] = p.parseBool
+	p.prefixParsers[lexer.FALSE] = p.parseBool
+	p.prefixParsers[lexer.BANG] = p.parsePrefix
+	p.prefixParsers[lexer.MINUS] = p.parsePrefix
+	p.prefixParsers[lexer.LPAREN] = p.parseParen
+	p.prefixParsers[lexer.IF] = p.parseConditional
+	p.prefixParsers[lexer.FUNCTION] = p.parseFunction
 
-	p.infixParsers = make(map[token.TokenType]infixParseFn)
-	for _, t := range []token.TokenType{
-		token.MINUS, token.PLUS, token.ASTERISK, token.SLASH, token.EQ,
-		token.NOT_EQ, token.LT, token.LE, token.GT, token.GE,
+	p.infixParsers = make(map[lexer.TokenType]infixParseFn)
+	for _, t := range []lexer.TokenType{
+		lexer.MINUS, lexer.PLUS, lexer.ASTERISK, lexer.SLASH, lexer.EQ,
+		lexer.NOT_EQ, lexer.LT, lexer.LE, lexer.GT, lexer.GE,
 	} {
 		p.infixParsers[t] = p.parseInfix
 	}
-	p.infixParsers[token.ASSIGN] = p.parseAssign
-	p.infixParsers[token.LPAREN] = p.parseFunctionCall
+	p.infixParsers[lexer.ASSIGN] = p.parseAssign
+	p.infixParsers[lexer.LPAREN] = p.parseFunctionCall
 
-	p.priorities = make(map[token.TokenType]int)
-	p.priorities[token.MINUS] = SUM
-	p.priorities[token.PLUS] = SUM
-	p.priorities[token.ASTERISK] = PRODUCT
-	p.priorities[token.SLASH] = PRODUCT
-	p.priorities[token.EQ] = COMPARISON
-	p.priorities[token.NOT_EQ] = COMPARISON
-	p.priorities[token.LT] = COMPARISON
-	p.priorities[token.LE] = COMPARISON
-	p.priorities[token.GT] = COMPARISON
-	p.priorities[token.GE] = COMPARISON
-	p.priorities[token.ASSIGN] = ASSIGN
-	p.priorities[token.LPAREN] = CALL
+	p.priorities = make(map[lexer.TokenType]int)
+	p.priorities[lexer.MINUS] = SUM
+	p.priorities[lexer.PLUS] = SUM
+	p.priorities[lexer.ASTERISK] = PRODUCT
+	p.priorities[lexer.SLASH] = PRODUCT
+	p.priorities[lexer.EQ] = COMPARISON
+	p.priorities[lexer.NOT_EQ] = COMPARISON
+	p.priorities[lexer.LT] = COMPARISON
+	p.priorities[lexer.LE] = COMPARISON
+	p.priorities[lexer.GT] = COMPARISON
+	p.priorities[lexer.GE] = COMPARISON
+	p.priorities[lexer.ASSIGN] = ASSIGN
+	p.priorities[lexer.LPAREN] = CALL
 	return p
 }
