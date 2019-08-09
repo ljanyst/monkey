@@ -636,3 +636,91 @@ fn(b) {
 
 	parseAndCompareAst(t, input, &expected)
 }
+
+func TestFunctionCall(t *testing.T) {
+	input := `
+let test = testFn(10 + 2 * 6, test);
+17 + 4 * test(25 + 2);
+`
+	expected := BlockNode{
+		[]Node{
+			&StatementNode{
+				token.Token{token.LET, "let", 2, 1},
+				&InfixNode{
+					token.Token{token.ASSIGN, "=", 2, 10},
+					&IdentifierNode{
+						token.Token{token.IDENT, "test", 2, 5},
+						"test",
+					},
+					&FunctionCallNode{
+						token.Token{token.LPAREN, "(", 2, 18},
+						&IdentifierNode{
+							token.Token{token.IDENT, "testFn", 2, 12},
+							"testFn",
+						},
+						[]Node{
+							&InfixNode{
+								token.Token{token.PLUS, "+", 2, 22},
+								&IntNode{
+									token.Token{token.INT, "10", 2, 19},
+									10,
+								},
+								&InfixNode{
+									token.Token{token.ASTERISK, "*", 2, 26},
+									&IntNode{
+										token.Token{token.INT, "2", 2, 24},
+										2,
+									},
+									&IntNode{
+										token.Token{token.INT, "6", 2, 28},
+										6,
+									},
+								},
+							},
+							&IdentifierNode{
+								token.Token{token.IDENT, "test", 2, 31},
+								"test",
+							},
+						},
+					},
+				},
+			},
+			&InfixNode{
+				token.Token{token.PLUS, "+", 3, 4},
+				&IntNode{
+					token.Token{token.INT, "17", 3, 1},
+					17,
+				},
+				&InfixNode{
+					token.Token{token.ASTERISK, "*", 3, 8},
+					&IntNode{
+						token.Token{token.INT, "4", 3, 6},
+						4,
+					},
+					&FunctionCallNode{
+						token.Token{token.LPAREN, "(", 3, 14},
+						&IdentifierNode{
+							token.Token{token.IDENT, "test", 3, 10},
+							"test",
+						},
+						[]Node{
+							&InfixNode{
+								token.Token{token.PLUS, "+", 3, 18},
+								&IntNode{
+									token.Token{token.INT, "25", 3, 15},
+									25,
+								},
+								&IntNode{
+									token.Token{token.INT, "2", 3, 20},
+									2,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	parseAndCompareAst(t, input, &expected)
+}
