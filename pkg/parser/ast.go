@@ -39,7 +39,7 @@ type BoolNode struct {
 
 type PrefixNode struct {
 	token      lexer.Token
-	expression Node
+	Expression Node
 }
 
 type InfixNode struct {
@@ -92,7 +92,7 @@ func (n *BlockNode) Children() []Node {
 }
 
 func (n *BlockNode) Token() lexer.Token {
-	return lexer.Token{"", "BLOCK", 0, 0}
+	return lexer.Token{"BLOCK", "BLOCK", 0, 0}
 }
 
 func (n *IntNode) String(padding string) string {
@@ -147,11 +147,11 @@ func (n *BoolNode) Token() lexer.Token {
 }
 
 func (n *PrefixNode) String(padding string) string {
-	return fmt.Sprintf("(%s %s)", n.token.Literal, n.expression.String(padding))
+	return fmt.Sprintf("(%s %s)", n.token.Literal, n.Expression.String(padding))
 }
 
 func (n *PrefixNode) Children() []Node {
-	return []Node{n.expression}
+	return []Node{n.Expression}
 }
 
 func (n *PrefixNode) Token() lexer.Token {
