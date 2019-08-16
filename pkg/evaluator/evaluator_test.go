@@ -21,7 +21,7 @@ func evaluateAndCompareResult(t *testing.T, input []string, expected []Object) b
 		exp := expected[i]
 
 		if obj.Type() != exp.Type() || obj.Value() != exp.Value() {
-			t.Errorf("Wrong result. Expected %v, got %v", exp, obj)
+			t.Errorf("Wrong result for test %d: %q. Expected %v, got %v", i, input[i], exp, obj)
 			continue
 		}
 	}
@@ -46,6 +46,36 @@ func TestLiteralsAndIdentifiers(t *testing.T) {
 		&BoolObject{false},
 		&BoolObject{false},
 		&IntObject{-10},
+	}
+
+	evaluateAndCompareResult(t, input, expected)
+}
+
+func TestInfixPriority(t *testing.T) {
+	input := []string{
+		"10 + 2;",
+		"3 * 20;",
+		"10 + 2 * 6;",
+		"12 * 7 + 12;",
+		"12 * 7 + 12 * 8;",
+		"2 + 4 * 5 * 6 * 7;",
+		"-12 * 7 + 12 * -8;",
+		"-12 * 7 == 12 + -8;",
+		"-12 * (7 + 12) * -8;",
+		"-(12 + 4);",
+	}
+
+	expected := []Object{
+		&IntObject{12},
+		&IntObject{60},
+		&IntObject{22},
+		&IntObject{96},
+		&IntObject{180},
+		&IntObject{842},
+		&IntObject{-180},
+		&BoolObject{false},
+		&IntObject{1824},
+		&IntObject{-16},
 	}
 
 	evaluateAndCompareResult(t, input, expected)
