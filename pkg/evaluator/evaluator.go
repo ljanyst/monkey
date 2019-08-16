@@ -25,9 +25,9 @@ func EvalString(code string) (Object, error) {
 	return EvalReader(strings.NewReader(code))
 }
 
-func mkErrUnexpectedType(exp, got ObjectType, tok lexer.Token) error {
-	return fmt.Errorf("Expected type %s got %s for operator %s at (%d:%d)",
-		exp, got, tok.Literal, tok.Line, tok.Column,
+func mkErrUnexpectedType(exp, got ObjectType, node parser.Node) error {
+	return fmt.Errorf("Expected type %s got %s for expression %q at line %d",
+		exp, got, node.String(""), node.Token().Line,
 	)
 }
 
@@ -56,26 +56,77 @@ func evalBool(node parser.Node) (Object, error) {
 }
 
 func evalPrefix(node parser.Node) (Object, error) {
-	obj, err := EvalNode(node.(*parser.PrefixNode).Expression)
+	exp := node.(*parser.PrefixNode).Expression
+	obj, err := EvalNode(exp)
 	if err != nil {
 		return nil, err
 	}
 
 	if node.Token().Type == lexer.BANG {
 		if obj.Type() != BOOL {
-			return nil, mkErrUnexpectedType(BOOL, obj.Type(), node.Token())
+			return nil, mkErrUnexpectedType(BOOL, obj.Type(), exp)
 		}
 		return &BoolObject{!obj.Value().(bool)}, nil
 	}
 
 	if node.Token().Type == lexer.MINUS {
 		if obj.Type() != INT {
-			return nil, mkErrUnexpectedType(INT, obj.Type(), node.Token())
+			return nil, mkErrUnexpectedType(INT, obj.Type(), exp)
 		}
 		return &IntObject{-obj.Value().(int64)}, nil
 	}
 
 	return nil, fmt.Errorf("Unrecognized token for prefix expression: %s", node.Token().Literal)
+}
+
+func evalInfix(node parser.Node) (Object, error) {
+	iNode := node.(*parser.InfixNode)
+
+	left, err := EvalNode(iNode.Left)
+	if err != nil {
+		return nil, err
+	}
+
+	right, err := EvalNode(iNode.Right)
+	if err != nil {
+		return nil, err
+	}
+
+	if left.Type() != INT {
+		return nil, mkErrUnexpectedType(INT, left.Type(), iNode.Left)
+	}
+
+	if right.Type() != INT {
+		return nil, mkErrUnexpectedType(INT, right.Type(), iNode.Right)
+	}
+
+	lVal := left.Value().(int64)
+	rVal := right.Value().(int64)
+
+	switch node.Token().Type {
+	case lexer.PLUS:
+		return &IntObject{lVal + rVal}, nil
+	case lexer.MINUS:
+		return &IntObject{lVal - rVal}, nil
+	case lexer.SLASH:
+		return &IntObject{lVal / rVal}, nil
+	case lexer.ASTERISK:
+		return &IntObject{lVal * rVal}, nil
+	case lexer.LT:
+		return &BoolObject{lVal < rVal}, nil
+	case lexer.LE:
+		return &BoolObject{lVal <= rVal}, nil
+	case lexer.GT:
+		return &BoolObject{lVal > rVal}, nil
+	case lexer.GE:
+		return &BoolObject{lVal >= rVal}, nil
+	case lexer.EQ:
+		return &BoolObject{lVal == rVal}, nil
+	case lexer.NOT_EQ:
+		return &BoolObject{lVal != rVal}, nil
+	}
+
+	return nil, fmt.Errorf("Unrecognized token for infix expression: %s", node.Token().Literal)
 }
 
 func EvalNode(node parser.Node) (Object, error) {
@@ -90,6 +141,8 @@ func EvalNode(node parser.Node) (Object, error) {
 		return evalBool(node)
 	case *parser.PrefixNode:
 		return evalPrefix(node)
+	case *parser.InfixNode:
+		return evalInfix(node)
 	default:
 		return nil,
 			fmt.Errorf("Evaluator not implemented for node type %s created for %s at (%d:%d)",

@@ -44,8 +44,8 @@ type PrefixNode struct {
 
 type InfixNode struct {
 	token lexer.Token
-	left  Node
-	right Node
+	Left  Node
+	Right Node
 }
 
 type ConditionalNode struct {
@@ -159,11 +159,11 @@ func (n *PrefixNode) Token() lexer.Token {
 }
 
 func (n *InfixNode) String(padding string) string {
-	return fmt.Sprintf("(%s %s %s)", n.left.String(padding), n.token.Literal, n.right.String(padding))
+	return fmt.Sprintf("(%s %s %s)", n.Left.String(padding), n.token.Literal, n.Right.String(padding))
 }
 
 func (n *InfixNode) Children() []Node {
-	return []Node{n.left, n.right}
+	return []Node{n.Left, n.Right}
 }
 
 func (n *InfixNode) Token() lexer.Token {
