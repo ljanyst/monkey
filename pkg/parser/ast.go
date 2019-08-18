@@ -51,9 +51,9 @@ type InfixNode struct {
 
 type ConditionalNode struct {
 	token       lexer.Token
-	condition   Node
-	consequent  Node
-	alternative Node
+	Condition   Node
+	Consequent  Node
+	Alternative Node
 }
 
 type StatementNode struct {
@@ -173,17 +173,17 @@ func (n *InfixNode) Token() lexer.Token {
 
 func (n *ConditionalNode) String(padding string) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("if %s\n", n.condition.String(padding)))
-	sb.WriteString(n.consequent.String(padding))
-	if n.alternative != nil {
+	sb.WriteString(fmt.Sprintf("if %s\n", n.Condition.String(padding)))
+	sb.WriteString(n.Consequent.String(padding))
+	if n.Alternative != nil {
 		sb.WriteString(fmt.Sprintf("\n%selse\n", padding))
-		sb.WriteString(n.alternative.String(padding))
+		sb.WriteString(n.Alternative.String(padding))
 	}
 	return sb.String()
 }
 
 func (n *ConditionalNode) Children() []Node {
-	return []Node{n.condition, n.consequent, n.alternative}
+	return []Node{n.Condition, n.Consequent, n.Alternative}
 }
 
 func (n *ConditionalNode) Token() lexer.Token {

@@ -206,6 +206,26 @@ func evalStatement(node parser.Node, c *Context) (Object, error) {
 	return nil, fmt.Errorf("Unrecognized statement: %s", node.Token().Literal)
 }
 
+func evalConditional(node parser.Node, c *Context) (Object, error) {
+	condNode := node.(*parser.ConditionalNode)
+
+	condObj, err := EvalNode(condNode.Condition, c)
+	if err != nil {
+		return nil, err
+	}
+
+	condTok := condNode.Condition.Token()
+	if condObj.Type() != BOOL {
+		return nil, fmt.Errorf("Expected boolean expression at (%d, %d), got %s", condTok.Line, condTok.Column,
+			condObj.Type())
+	}
+
+	if condObj.Value().(bool) {
+		return EvalNode(condNode.Consequent, c)
+	}
+	return EvalNode(condNode.Alternative, c)
+}
+
 func EvalNode(node parser.Node, c *Context) (Object, error) {
 	switch node.(type) {
 	case *parser.BlockNode:
@@ -224,6 +244,8 @@ func EvalNode(node parser.Node, c *Context) (Object, error) {
 		return evalInfix(node, c)
 	case *parser.StatementNode:
 		return evalStatement(node, c)
+	case *parser.ConditionalNode:
+		return evalConditional(node, c)
 	default:
 		return nil,
 			fmt.Errorf("Evaluator not implemented for node type %s created for %s at (%d:%d)",
