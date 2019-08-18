@@ -351,7 +351,7 @@ func (p *Parser) parsePrimaryExpression() (Node, error) {
 }
 
 func (p *Parser) Parse() (Node, error) {
-	n := BlockNode{}
+	n := BlockNode{true, []Node{}}
 	for {
 		if p.nextToken().Type == lexer.EOF {
 			break
