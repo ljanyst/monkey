@@ -34,6 +34,12 @@ func mkErrUnexpectedType(exp, got ObjectType, node parser.Node) error {
 func evalBlock(node parser.Node, c *Context) (Object, error) {
 	var obj Object
 	var err error
+
+	implicit := node.(*parser.BlockNode).Implicit
+	if !implicit {
+		c = c.ChildContext()
+	}
+
 	for _, n := range node.Children() {
 		obj, err = EvalNode(n, c)
 		if err != nil {
@@ -53,6 +59,16 @@ func evalString(node parser.Node, c *Context) (Object, error) {
 
 func evalBool(node parser.Node, c *Context) (Object, error) {
 	return &BoolObject{node.(*parser.BoolNode).Value}, nil
+}
+
+func evalIdentifier(node parser.Node, c *Context) (Object, error) {
+	identNode := node.(*parser.IdentifierNode)
+	obj, err := c.Resolve(identNode.Value)
+	if err != nil {
+		tok := node.Token()
+		return nil, fmt.Errorf("Evaluation error at (%d, %d): %s", tok.Line, tok.Column, err)
+	}
+	return obj, nil
 }
 
 func evalPrefix(node parser.Node, c *Context) (Object, error) {
@@ -79,8 +95,34 @@ func evalPrefix(node parser.Node, c *Context) (Object, error) {
 	return nil, fmt.Errorf("Unrecognized token for prefix expression: %s", node.Token().Literal)
 }
 
+func evalAssign(node parser.Node, c *Context) (Object, error) {
+	assignNode := node.(*parser.InfixNode)
+	tok := assignNode.Left.Token()
+	if tok.Type != lexer.IDENT {
+		return nil, fmt.Errorf("Expected identifier got %q at (%d:%d)", tok.Literal, tok.Line, tok.Column)
+	}
+
+	identNode := assignNode.Left.(*parser.IdentifierNode)
+
+	obj, err := EvalNode(assignNode.Right, c)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.Set(identNode.Value, obj)
+	if err != nil {
+		return nil, err
+	}
+
+	return obj, nil
+}
+
 func evalInfix(node parser.Node, c *Context) (Object, error) {
 	iNode := node.(*parser.InfixNode)
+
+	if node.Token().Type == lexer.ASSIGN {
+		return evalAssign(node, c)
+	}
 
 	left, err := EvalNode(iNode.Left, c)
 	if err != nil {
@@ -129,6 +171,41 @@ func evalInfix(node parser.Node, c *Context) (Object, error) {
 	return nil, fmt.Errorf("Unrecognized token for infix expression: %s", node.Token().Literal)
 }
 
+func evalLet(node parser.Node, c *Context) (Object, error) {
+	child := node.Children()[0]
+	tok := child.Token()
+	if tok.Type != lexer.ASSIGN {
+		return nil, fmt.Errorf("Expected assignment got %q at (%d:%d)", tok.Literal, tok.Line, tok.Column)
+	}
+
+	assignNode := child.(*parser.InfixNode)
+	tok = assignNode.Left.Token()
+	if tok.Type != lexer.IDENT {
+		return nil, fmt.Errorf("Expected identifier got %q at (%d:%d)", tok.Literal, tok.Line, tok.Column)
+	}
+
+	identNode := assignNode.Left.(*parser.IdentifierNode)
+
+	obj, err := EvalNode(assignNode.Right, c)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.Create(identNode.Value, obj)
+	if err != nil {
+		return nil, err
+	}
+
+	return obj, nil
+}
+
+func evalStatement(node parser.Node, c *Context) (Object, error) {
+	if node.Token().Type == lexer.LET {
+		return evalLet(node, c)
+	}
+	return nil, fmt.Errorf("Unrecognized statement: %s", node.Token().Literal)
+}
+
 func EvalNode(node parser.Node, c *Context) (Object, error) {
 	switch node.(type) {
 	case *parser.BlockNode:
@@ -139,10 +216,14 @@ func EvalNode(node parser.Node, c *Context) (Object, error) {
 		return evalString(node, c)
 	case *parser.BoolNode:
 		return evalBool(node, c)
+	case *parser.IdentifierNode:
+		return evalIdentifier(node, c)
 	case *parser.PrefixNode:
 		return evalPrefix(node, c)
 	case *parser.InfixNode:
 		return evalInfix(node, c)
+	case *parser.StatementNode:
+		return evalStatement(node, c)
 	default:
 		return nil,
 			fmt.Errorf("Evaluator not implemented for node type %s created for %s at (%d:%d)",
