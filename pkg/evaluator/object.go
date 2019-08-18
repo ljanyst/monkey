@@ -10,6 +10,7 @@ const (
 	INT    = "INT"
 	BOOL   = "BOOL"
 	STRING = "STRING"
+	RETURN = "RETURN"
 )
 
 type Object interface {
@@ -28,6 +29,10 @@ type BoolObject struct {
 
 type StringObject struct {
 	value string
+}
+
+type ReturnObject struct {
+	value Object
 }
 
 func (o *IntObject) Inspect() string {
@@ -66,5 +71,17 @@ func (o *StringObject) Type() ObjectType {
 }
 
 func (o *StringObject) Value() interface{} {
+	return o.value
+}
+
+func (o *ReturnObject) Inspect() string {
+	return fmt.Sprintf("return %q", o.value.Inspect())
+}
+
+func (o *ReturnObject) Type() ObjectType {
+	return RETURN
+}
+
+func (o *ReturnObject) Value() interface{} {
 	return o.value
 }

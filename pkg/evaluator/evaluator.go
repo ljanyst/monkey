@@ -45,7 +45,16 @@ func evalBlock(node parser.Node, c *Context) (Object, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		if obj.Type() == RETURN {
+			break
+		}
 	}
+
+	if implicit && obj.Type() == RETURN {
+		return obj.Value().(Object), nil
+	}
+
 	return obj, nil
 }
 
@@ -199,9 +208,19 @@ func evalLet(node parser.Node, c *Context) (Object, error) {
 	return obj, nil
 }
 
+func evalReturn(node parser.Node, c *Context) (Object, error) {
+	obj, err := EvalNode(node.Children()[0], c)
+	if err != nil {
+		return nil, err
+	}
+	return &ReturnObject{obj}, nil
+}
+
 func evalStatement(node parser.Node, c *Context) (Object, error) {
 	if node.Token().Type == lexer.LET {
 		return evalLet(node, c)
+	} else if node.Token().Type == lexer.RETURN {
+		return evalReturn(node, c)
 	}
 	return nil, fmt.Errorf("Unrecognized statement: %s", node.Token().Literal)
 }
