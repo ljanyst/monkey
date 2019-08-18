@@ -131,3 +131,25 @@ func TestSimpleAssignments(t *testing.T) {
 
 	evaluateAndCompareResult(t, input, expected, sideEffects)
 }
+
+func TestIfElse(t *testing.T) {
+	input := []string{
+		"let test1 = 12; if (test1 == 12) { test1 = 3; };",
+		"let test2 = 1; if (test2 > 2) { 12 * 4; let test2 = 2; } else { test2 = 3; };",
+		"let test3 = 2; if (test3 == 2) { let test3 = 12; test3; };",
+	}
+
+	expected := []Object{
+		&IntObject{3},
+		&IntObject{3},
+		&IntObject{12},
+	}
+
+	sideEffects := []map[string]Object{
+		map[string]Object{"test1": &IntObject{3}},
+		map[string]Object{"test2": &IntObject{3}},
+		map[string]Object{"test3": &IntObject{2}},
+	}
+
+	evaluateAndCompareResult(t, input, expected, sideEffects)
+}
