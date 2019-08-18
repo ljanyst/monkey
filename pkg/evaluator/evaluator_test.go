@@ -113,6 +113,7 @@ func TestSimpleAssignments(t *testing.T) {
 		"let test2 = 12 * 7 + 12 * 8;",
 		"let test3 = -12 * 7 == 12 + -8;",
 		"let test4 = 12; test4 = 22; test4 - 1;",
+		"let test5 = 18; return 22 + test5;",
 	}
 
 	expected := []Object{
@@ -120,6 +121,7 @@ func TestSimpleAssignments(t *testing.T) {
 		&IntObject{180},
 		&BoolObject{false},
 		&IntObject{21},
+		&IntObject{40},
 	}
 
 	sideEffects := []map[string]Object{
@@ -127,6 +129,7 @@ func TestSimpleAssignments(t *testing.T) {
 		map[string]Object{"test2": &IntObject{180}},
 		map[string]Object{"test3": &BoolObject{false}},
 		map[string]Object{"test4": &IntObject{22}},
+		map[string]Object{"test5": &IntObject{18}},
 	}
 
 	evaluateAndCompareResult(t, input, expected, sideEffects)
