@@ -10,7 +10,7 @@ import (
 	"github.com/ljanyst/monkey/pkg/parser"
 )
 
-func EvalReader(reader io.Reader) (Object, error) {
+func EvalReader(reader io.Reader, c *Context) (Object, error) {
 	l := lexer.NewLexerFromReader(reader)
 	p := parser.NewParser(l)
 	program, err := p.Parse()
@@ -18,11 +18,11 @@ func EvalReader(reader io.Reader) (Object, error) {
 		return nil, err
 	}
 
-	return EvalNode(program)
+	return EvalNode(program, c)
 }
 
-func EvalString(code string) (Object, error) {
-	return EvalReader(strings.NewReader(code))
+func EvalString(code string, c *Context) (Object, error) {
+	return EvalReader(strings.NewReader(code), c)
 }
 
 func mkErrUnexpectedType(exp, got ObjectType, node parser.Node) error {
@@ -31,11 +31,11 @@ func mkErrUnexpectedType(exp, got ObjectType, node parser.Node) error {
 	)
 }
 
-func evalBlock(node parser.Node) (Object, error) {
+func evalBlock(node parser.Node, c *Context) (Object, error) {
 	var obj Object
 	var err error
 	for _, n := range node.Children() {
-		obj, err = EvalNode(n)
+		obj, err = EvalNode(n, c)
 		if err != nil {
 			return nil, err
 		}
@@ -43,21 +43,21 @@ func evalBlock(node parser.Node) (Object, error) {
 	return obj, nil
 }
 
-func evalInt(node parser.Node) (Object, error) {
+func evalInt(node parser.Node, c *Context) (Object, error) {
 	return &IntObject{node.(*parser.IntNode).Value}, nil
 }
 
-func evalString(node parser.Node) (Object, error) {
+func evalString(node parser.Node, c *Context) (Object, error) {
 	return &StringObject{node.(*parser.StringNode).Value}, nil
 }
 
-func evalBool(node parser.Node) (Object, error) {
+func evalBool(node parser.Node, c *Context) (Object, error) {
 	return &BoolObject{node.(*parser.BoolNode).Value}, nil
 }
 
-func evalPrefix(node parser.Node) (Object, error) {
+func evalPrefix(node parser.Node, c *Context) (Object, error) {
 	exp := node.(*parser.PrefixNode).Expression
-	obj, err := EvalNode(exp)
+	obj, err := EvalNode(exp, c)
 	if err != nil {
 		return nil, err
 	}
@@ -79,15 +79,15 @@ func evalPrefix(node parser.Node) (Object, error) {
 	return nil, fmt.Errorf("Unrecognized token for prefix expression: %s", node.Token().Literal)
 }
 
-func evalInfix(node parser.Node) (Object, error) {
+func evalInfix(node parser.Node, c *Context) (Object, error) {
 	iNode := node.(*parser.InfixNode)
 
-	left, err := EvalNode(iNode.Left)
+	left, err := EvalNode(iNode.Left, c)
 	if err != nil {
 		return nil, err
 	}
 
-	right, err := EvalNode(iNode.Right)
+	right, err := EvalNode(iNode.Right, c)
 	if err != nil {
 		return nil, err
 	}
@@ -129,20 +129,20 @@ func evalInfix(node parser.Node) (Object, error) {
 	return nil, fmt.Errorf("Unrecognized token for infix expression: %s", node.Token().Literal)
 }
 
-func EvalNode(node parser.Node) (Object, error) {
+func EvalNode(node parser.Node, c *Context) (Object, error) {
 	switch node.(type) {
 	case *parser.BlockNode:
-		return evalBlock(node)
+		return evalBlock(node, c)
 	case *parser.IntNode:
-		return evalInt(node)
+		return evalInt(node, c)
 	case *parser.StringNode:
-		return evalString(node)
+		return evalString(node, c)
 	case *parser.BoolNode:
-		return evalBool(node)
+		return evalBool(node, c)
 	case *parser.PrefixNode:
-		return evalPrefix(node)
+		return evalPrefix(node, c)
 	case *parser.InfixNode:
-		return evalInfix(node)
+		return evalInfix(node, c)
 	default:
 		return nil,
 			fmt.Errorf("Evaluator not implemented for node type %s created for %s at (%d:%d)",

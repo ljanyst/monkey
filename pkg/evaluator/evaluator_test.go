@@ -12,7 +12,8 @@ func evaluateAndCompareResult(t *testing.T, input []string, expected []Object) b
 	}
 
 	for i := 0; i < len(input); i++ {
-		obj, err := EvalString(input[i])
+		c := NewContext()
+		obj, err := EvalString(input[i], c)
 		if err != nil {
 			t.Errorf("Unable to evaluate program %d: %s", i, err)
 			continue
