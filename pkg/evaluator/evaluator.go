@@ -245,6 +245,20 @@ func evalConditional(node parser.Node, c *Context) (Object, error) {
 	return EvalNode(condNode.Alternative, c)
 }
 
+func evalFunction(node parser.Node, c *Context) (Object, error) {
+	funcNode := node.(*parser.FunctionNode)
+	params := []string{}
+
+	for _, param := range funcNode.Params {
+		tok := param.Token()
+		if tok.Type != lexer.IDENT {
+			return nil, fmt.Errorf("Expected an identifier at (%d, %d), got %s", tok.Line, tok.Column, tok.Type)
+		}
+		params = append(params, param.(*parser.IdentifierNode).Value)
+	}
+	return &FunctionObject{params, c, funcNode.Body}, nil
+}
+
 func EvalNode(node parser.Node, c *Context) (Object, error) {
 	switch node.(type) {
 	case *parser.BlockNode:
@@ -265,6 +279,8 @@ func EvalNode(node parser.Node, c *Context) (Object, error) {
 		return evalStatement(node, c)
 	case *parser.ConditionalNode:
 		return evalConditional(node, c)
+	case *parser.FunctionNode:
+		return evalFunction(node, c)
 	default:
 		return nil,
 			fmt.Errorf("Evaluator not implemented for node type %s created for %s at (%d:%d)",

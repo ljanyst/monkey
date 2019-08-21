@@ -63,8 +63,8 @@ type StatementNode struct {
 
 type FunctionNode struct {
 	token  lexer.Token
-	params []Node
-	body   Node
+	Params []Node
+	Body   Node
 }
 
 type FunctionCallNode struct {
@@ -205,19 +205,19 @@ func (n *StatementNode) Token() lexer.Token {
 func (n *FunctionNode) String(padding string) string {
 	var sb strings.Builder
 	sb.WriteString("fn(")
-	for i, param := range n.params {
+	for i, param := range n.Params {
 		sb.WriteString(param.String(padding))
-		if i < len(n.params)-1 {
+		if i < len(n.Params)-1 {
 			sb.WriteString(", ")
 		}
 	}
 	sb.WriteString(")\n")
-	sb.WriteString(n.body.String(padding))
+	sb.WriteString(n.Body.String(padding))
 	return sb.String()
 }
 
 func (n *FunctionNode) Children() []Node {
-	return append(n.params, n.body)
+	return append(n.Params, n.Body)
 }
 
 func (n *FunctionNode) Token() lexer.Token {

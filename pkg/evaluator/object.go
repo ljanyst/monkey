@@ -2,15 +2,19 @@ package evaluator
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/ljanyst/monkey/pkg/parser"
 )
 
 type ObjectType string
 
 const (
-	INT    = "INT"
-	BOOL   = "BOOL"
-	STRING = "STRING"
-	RETURN = "RETURN"
+	INT      = "INT"
+	BOOL     = "BOOL"
+	STRING   = "STRING"
+	RETURN   = "RETURN"
+	FUNCTION = "FUNCTION"
 )
 
 type Object interface {
@@ -33,6 +37,12 @@ type StringObject struct {
 
 type ReturnObject struct {
 	value Object
+}
+
+type FunctionObject struct {
+	Params        []string
+	ParentContext *Context
+	Block         parser.Node
 }
 
 func (o *IntObject) Inspect() string {
@@ -84,4 +94,25 @@ func (o *ReturnObject) Type() ObjectType {
 
 func (o *ReturnObject) Value() interface{} {
 	return o.value
+}
+
+func (o *FunctionObject) Inspect() string {
+	var sb strings.Builder
+	sb.WriteString("fn(")
+	for i, param := range o.Params {
+		sb.WriteString(param)
+		if i < len(o.Params)-1 {
+			sb.WriteString(", ")
+		}
+	}
+	sb.WriteString(")")
+	return sb.String()
+}
+
+func (o *FunctionObject) Type() ObjectType {
+	return FUNCTION
+}
+
+func (o *FunctionObject) Value() interface{} {
+	return o.Block
 }
