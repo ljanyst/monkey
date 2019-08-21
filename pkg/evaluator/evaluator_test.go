@@ -25,7 +25,7 @@ func evaluateAndCompareResult(t *testing.T, input []string, expected []Object,
 
 		exp := expected[i]
 
-		if obj.Type() != exp.Type() || obj.Value() != exp.Value() {
+		if obj.Type() != exp.Type() || obj.Inspect() != exp.Inspect() {
 			t.Errorf("[test %d] Wrong result: %q. Expected %v, got %v", i, input[i], exp, obj)
 			status = false
 			continue
@@ -44,7 +44,7 @@ func evaluateAndCompareResult(t *testing.T, input []string, expected []Object,
 				continue
 			}
 
-			if obj.Type() != v.Type() || obj.Value() != v.Value() {
+			if obj.Type() != v.Type() || obj.Inspect() != v.Inspect() {
 				t.Errorf("[test %d] Wrong object in variable %q. Expected %v, got %v", i, k, v, obj)
 				status = false
 				continue
@@ -155,4 +155,40 @@ func TestIfElse(t *testing.T) {
 	}
 
 	evaluateAndCompareResult(t, input, expected, sideEffects)
+}
+
+func TestFunctionDefs(t *testing.T) {
+	input0 := `
+let test = fn(a, b, c) {
+  return a * b + c;
+};
+`
+	input1 := `
+let test = 12;
+test = fn() {
+  !true;
+};
+`
+	input2 := `
+fn(b) {
+  return b;
+};
+`
+
+	input := []string{input0, input1, input2}
+
+	expected := []Object{
+		&FunctionObject{[]string{"a", "b", "c"}, nil, nil},
+		&FunctionObject{[]string{}, nil, nil},
+		&FunctionObject{[]string{"b"}, nil, nil},
+	}
+
+	sideEffects := []map[string]Object{
+		map[string]Object{"test": expected[0]},
+		map[string]Object{"test": expected[1]},
+		map[string]Object{},
+	}
+
+	evaluateAndCompareResult(t, input, expected, sideEffects)
+
 }
