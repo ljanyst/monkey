@@ -69,8 +69,8 @@ type FunctionNode struct {
 
 type FunctionCallNode struct {
 	token lexer.Token
-	name  Node
-	args  []Node
+	Name  Node
+	Args  []Node
 }
 
 func (n *BlockNode) String(padding string) string {
@@ -226,10 +226,10 @@ func (n *FunctionNode) Token() lexer.Token {
 
 func (n *FunctionCallNode) String(padding string) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("%s(", n.name.String(padding)))
-	for i, arg := range n.args {
+	sb.WriteString(fmt.Sprintf("%s(", n.Name.String(padding)))
+	for i, arg := range n.Args {
 		sb.WriteString(arg.String(padding))
-		if i < len(n.args)-1 {
+		if i < len(n.Args)-1 {
 			sb.WriteString(", ")
 		}
 	}
@@ -238,7 +238,7 @@ func (n *FunctionCallNode) String(padding string) string {
 }
 
 func (n *FunctionCallNode) Children() []Node {
-	return append([]Node{n.name}, n.args...)
+	return append([]Node{n.Name}, n.Args...)
 }
 
 func (n *FunctionCallNode) Token() lexer.Token {

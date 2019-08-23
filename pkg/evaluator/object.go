@@ -15,6 +15,7 @@ const (
 	STRING   = "STRING"
 	RETURN   = "RETURN"
 	FUNCTION = "FUNCTION"
+	NIL      = "NIL"
 )
 
 type Object interface {
@@ -43,6 +44,9 @@ type FunctionObject struct {
 	Params        []string
 	ParentContext *Context
 	Block         parser.Node
+}
+
+type NilObject struct {
 }
 
 func (o *IntObject) Inspect() string {
@@ -115,4 +119,16 @@ func (o *FunctionObject) Type() ObjectType {
 
 func (o *FunctionObject) Value() interface{} {
 	return o.Block
+}
+
+func (o *NilObject) Inspect() string {
+	return "nil"
+}
+
+func (o *NilObject) Type() ObjectType {
+	return NIL
+}
+
+func (o *NilObject) Value() interface{} {
+	return nil
 }

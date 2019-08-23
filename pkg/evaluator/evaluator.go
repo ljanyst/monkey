@@ -242,6 +242,7 @@ func evalConditional(node parser.Node, c *Context) (Object, error) {
 	if condObj.Value().(bool) {
 		return EvalNode(condNode.Consequent, c)
 	}
+
 	return EvalNode(condNode.Alternative, c)
 }
 
@@ -259,7 +260,59 @@ func evalFunction(node parser.Node, c *Context) (Object, error) {
 	return &FunctionObject{params, c, funcNode.Body}, nil
 }
 
+func evalFunctionCall(node parser.Node, c *Context) (Object, error) {
+	funcCallNode := node.(*parser.FunctionCallNode)
+
+	tok := funcCallNode.Name.Token()
+	if tok.Type != lexer.IDENT {
+		return nil, fmt.Errorf("Expected an identifier at (%d, %d), got %q", tok.Line, tok.Column, tok.Literal)
+	}
+	name := funcCallNode.Name.(*parser.IdentifierNode).Value
+
+	fObj, err := c.Resolve(name)
+	if err != nil {
+		return nil, err
+	}
+
+	if fObj.Type() != FUNCTION {
+		return nil, fmt.Errorf("Expected %q at (%d, %d) to be a function, got %s", name, tok.Line, tok.Column,
+			fObj.Type())
+	}
+
+	f := fObj.(*FunctionObject)
+
+	if len(f.Params) != len(funcCallNode.Args) {
+		return nil, fmt.Errorf("Expected %d params for %q at (%d, %d), got %d", len(f.Params), name,
+			tok.Line, tok.Column, len(funcCallNode.Args))
+	}
+
+	paramContext := f.ParentContext.ChildContext()
+	for i, paramName := range f.Params {
+		paramObj, err := EvalNode(funcCallNode.Args[i], c)
+		if err != nil {
+			return nil, err
+		}
+		paramContext.Create(paramName, paramObj)
+	}
+
+	funcCallContext := paramContext.ChildContext()
+
+	retObj, err := EvalNode(f.Block, funcCallContext)
+	if err != nil {
+		return nil, err
+	}
+
+	if retObj.Type() == RETURN {
+		return retObj.Value().(Object), nil
+	}
+	return retObj, nil
+}
+
 func EvalNode(node parser.Node, c *Context) (Object, error) {
+	if node == nil {
+		return &NilObject{}, nil
+	}
+
 	switch node.(type) {
 	case *parser.BlockNode:
 		return evalBlock(node, c)
@@ -281,6 +334,8 @@ func EvalNode(node parser.Node, c *Context) (Object, error) {
 		return evalConditional(node, c)
 	case *parser.FunctionNode:
 		return evalFunction(node, c)
+	case *parser.FunctionCallNode:
+		return evalFunctionCall(node, c)
 	default:
 		return nil,
 			fmt.Errorf("Evaluator not implemented for node type %s created for %s at (%d:%d)",
