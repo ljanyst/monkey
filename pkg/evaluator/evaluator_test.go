@@ -190,5 +190,68 @@ fn(b) {
 	}
 
 	evaluateAndCompareResult(t, input, expected, sideEffects)
+}
 
+func TestFunctionCall(t *testing.T) {
+	input := []string{`
+let adder = fn(x) {
+  return fn(y) { return x + y; };
+};
+
+let multiplier = fn(x) {
+  return fn(y) { return x * y; };
+};
+
+let compositor = fn(f1, f2) {
+  return fn(x) { return f1(f2(x)); };
+};
+
+let func = compositor(adder(5), multiplier(2));
+
+let result = func(3);
+
+result;
+`, `
+let func = fn(x) {
+  if (x > 5) {
+    return x;
+  } else {
+    2;
+  };
+  return 3;
+};
+
+let funcOuter = fn(x) {
+  let y = func(x);
+  if (y > 5) {
+     return x;
+  };
+  return 1;
+};
+
+let x1 = funcOuter(6);
+let x2 = funcOuter(1);
+`,
+	}
+
+	expected := []Object{
+		&IntObject{11},
+		&IntObject{1},
+	}
+
+	sideEffects := []map[string]Object{
+		map[string]Object{
+			"adder":      &FunctionObject{[]string{"x"}, nil, nil},
+			"multiplier": &FunctionObject{[]string{"x"}, nil, nil},
+			"compositor": &FunctionObject{[]string{"f1", "f2"}, nil, nil},
+			"func":       &FunctionObject{[]string{"x"}, nil, nil},
+			"result":     &IntObject{11},
+		},
+		map[string]Object{
+			"x1": &IntObject{6},
+			"x2": &IntObject{1},
+		},
+	}
+
+	evaluateAndCompareResult(t, input, expected, sideEffects)
 }
