@@ -89,6 +89,14 @@ func (p *Parser) parseBool() (Node, error) {
 	return &BoolNode{tok, false}, nil
 }
 
+func (p *Parser) parseNil() (Node, error) {
+	tok := p.lexer.ReadToken()
+	if tok.Type != lexer.NIL {
+		return nil, mkErrWrongToken("nil", tok)
+	}
+	return &NilNode{tok}, nil
+}
+
 func (p *Parser) parsePrefix() (Node, error) {
 	tok := p.lexer.ReadToken()
 	exp, err := p.parseExpression(PREFIX)
@@ -373,6 +381,7 @@ func NewParser(lex *lexer.Lexer) *Parser {
 	p.prefixParsers[lexer.IDENT] = p.parseIdent
 	p.prefixParsers[lexer.TRUE] = p.parseBool
 	p.prefixParsers[lexer.FALSE] = p.parseBool
+	p.prefixParsers[lexer.NIL] = p.parseNil
 	p.prefixParsers[lexer.BANG] = p.parsePrefix
 	p.prefixParsers[lexer.MINUS] = p.parsePrefix
 	p.prefixParsers[lexer.LPAREN] = p.parseParen

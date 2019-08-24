@@ -79,6 +79,7 @@ true;
 false;
 !true;
 -10;
+nil;
 `
 
 	expected := BlockNode{
@@ -117,6 +118,9 @@ false;
 					lexer.Token{lexer.INT, "10", 7, 2, &input},
 					10,
 				},
+			},
+			&NilNode{
+				lexer.Token{lexer.NIL, "nil", 8, 1, &input},
 			},
 		},
 	}

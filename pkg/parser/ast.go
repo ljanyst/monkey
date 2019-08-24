@@ -38,6 +38,10 @@ type BoolNode struct {
 	Value bool
 }
 
+type NilNode struct {
+	token lexer.Token
+}
+
 type PrefixNode struct {
 	token      lexer.Token
 	Expression Node
@@ -242,5 +246,17 @@ func (n *FunctionCallNode) Children() []Node {
 }
 
 func (n *FunctionCallNode) Token() lexer.Token {
+	return n.token
+}
+
+func (n *NilNode) String(padding string) string {
+	return "nil"
+}
+
+func (n *NilNode) Children() []Node {
+	return []Node{}
+}
+
+func (n *NilNode) Token() lexer.Token {
 	return n.token
 }
