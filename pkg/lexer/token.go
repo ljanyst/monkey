@@ -4,39 +4,42 @@ import (
 	"fmt"
 )
 
-type TokenType string
+//go:generate go run golang.org/x/tools/cmd/stringer -type TokenType token.go
+
+type TokenType int
 
 const (
-	LET       = "LET"
-	IDENT     = "IDENT"
-	ASSIGN    = "ASSIGN"
-	INT       = "INT"
-	SEMICOLON = "SEMICOLON"
-	FUNCTION  = "FUNCTION"
-	LPAREN    = "LPAREN"
-	COMMA     = "COMMA"
-	RPAREN    = "RPAREN"
-	LBRACE    = "LBRACE"
-	PLUS      = "PLUS"
-	RBRACE    = "RBRACE"
-	BANG      = "BANG"
-	MINUS     = "MINUS"
-	SLASH     = "SLASH"
-	ASTERISK  = "ASTERISK"
-	LT        = "LT"
-	LE        = "LE"
-	GT        = "GT"
-	GE        = "GE"
-	IF        = "IF"
-	RETURN    = "RETURN"
-	TRUE      = "TRUE"
-	ELSE      = "ELSE"
-	FALSE     = "FALSE"
-	STRING    = "STRING"
-	EQ        = "EQ"
-	NOT_EQ    = "NOT_EQ"
-	INVALID   = "INVALID"
-	EOF       = "EOF"
+	LET TokenType = iota
+	IDENT
+	ASSIGN
+	INT
+	SEMICOLON
+	FUNCTION
+	LPAREN
+	COMMA
+	RPAREN
+	LBRACE
+	PLUS
+	RBRACE
+	BANG
+	MINUS
+	SLASH
+	ASTERISK
+	LT
+	LE
+	GT
+	GE
+	IF
+	RETURN
+	TRUE
+	ELSE
+	FALSE
+	STRING
+	EQ
+	NOT_EQ
+	INVALID
+	BLOCK
+	EOF
 )
 
 type Token struct {

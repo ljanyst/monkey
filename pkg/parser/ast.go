@@ -93,7 +93,7 @@ func (n *BlockNode) Children() []Node {
 }
 
 func (n *BlockNode) Token() lexer.Token {
-	return lexer.Token{"BLOCK", "BLOCK", 0, 0, nil}
+	return lexer.Token{lexer.BLOCK, "BLOCK", 0, 0, nil}
 }
 
 func (n *IntNode) String(padding string) string {

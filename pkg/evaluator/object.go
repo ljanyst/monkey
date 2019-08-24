@@ -7,15 +7,17 @@ import (
 	"github.com/ljanyst/monkey/pkg/parser"
 )
 
-type ObjectType string
+//go:generate go run golang.org/x/tools/cmd/stringer -type ObjectType object.go
+
+type ObjectType int
 
 const (
-	INT      = "INT"
-	BOOL     = "BOOL"
-	STRING   = "STRING"
-	RETURN   = "RETURN"
-	FUNCTION = "FUNCTION"
-	NIL      = "NIL"
+	INT ObjectType = iota
+	BOOL
+	STRING
+	RETURN
+	FUNCTION
+	NIL
 )
 
 type Object interface {
