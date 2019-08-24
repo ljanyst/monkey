@@ -40,6 +40,7 @@ const (
 	INVALID
 	BLOCK
 	EOF
+	NIL
 )
 
 type Token struct {
@@ -62,6 +63,7 @@ var keywords = map[string]TokenType{
 	"return": RETURN,
 	"true":   TRUE,
 	"false":  FALSE,
+	"nil":    NIL,
 }
 
 func LookupKeyword(ident string) TokenType {

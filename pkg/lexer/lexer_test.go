@@ -37,6 +37,7 @@ let żółwik = "zażółć gęślą jaźń";
 43 >= 17;
 10 == 10;
 10 != 9;
+nil;
 `
 
 	tests := []Token{
@@ -126,6 +127,8 @@ let żółwik = "zażółć gęślą jaźń";
 		{INT, "10", 0, 0, nil},
 		{NOT_EQ, "!=", 0, 0, nil},
 		{INT, "9", 0, 0, nil},
+		{SEMICOLON, ";", 0, 0, nil},
+		{NIL, "nil", 0, 0, nil},
 		{SEMICOLON, ";", 0, 0, nil},
 		{EOF, "", 0, 0, nil},
 	}
