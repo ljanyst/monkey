@@ -57,7 +57,7 @@ func evalBlock(node parser.Node, c *Context) (Object, error) {
 	}
 
 	if implicit && obj.Type() == RETURN {
-		return obj.Value().(Object), nil
+		return obj.(*ReturnObject).Value, nil
 	}
 
 	return obj, nil
@@ -96,14 +96,14 @@ func evalPrefix(node parser.Node, c *Context) (Object, error) {
 		if obj.Type() != BOOL {
 			return nil, mkErrUnexpectedType(BOOL, obj.Type(), exp)
 		}
-		return &BoolObject{!obj.Value().(bool)}, nil
+		return &BoolObject{!obj.(*BoolObject).Value}, nil
 	}
 
 	if node.Token().Type == lexer.MINUS {
 		if obj.Type() != INT {
 			return nil, mkErrUnexpectedType(INT, obj.Type(), exp)
 		}
-		return &IntObject{-obj.Value().(int64)}, nil
+		return &IntObject{-obj.(*IntObject).Value}, nil
 	}
 
 	return nil, fmt.Errorf("Unrecognized token for prefix expression: %s", node.Token().Literal)
@@ -156,8 +156,8 @@ func evalInfix(node parser.Node, c *Context) (Object, error) {
 		return nil, mkErrUnexpectedType(INT, right.Type(), iNode.Right)
 	}
 
-	lVal := left.Value().(int64)
-	rVal := right.Value().(int64)
+	lVal := left.(*IntObject).Value
+	rVal := right.(*IntObject).Value
 
 	switch node.Token().Type {
 	case lexer.PLUS:
@@ -242,7 +242,7 @@ func evalConditional(node parser.Node, c *Context) (Object, error) {
 		return nil, mkErrUnexpectedType(BOOL, condObj.Type(), condNode.Condition)
 	}
 
-	if condObj.Value().(bool) {
+	if condObj.(*BoolObject).Value {
 		return EvalNode(condNode.Consequent, c)
 	}
 
@@ -299,13 +299,13 @@ func evalFunctionCall(node parser.Node, c *Context) (Object, error) {
 
 	funcCallContext := paramContext.ChildContext()
 
-	retObj, err := EvalNode(f.Block, funcCallContext)
+	retObj, err := EvalNode(f.Value, funcCallContext)
 	if err != nil {
 		return nil, err
 	}
 
 	if retObj.Type() == RETURN {
-		return retObj.Value().(Object), nil
+		return retObj.(*ReturnObject).Value, nil
 	}
 	return retObj, nil
 }
