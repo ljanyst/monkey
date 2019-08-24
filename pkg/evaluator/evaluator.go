@@ -324,6 +324,8 @@ func EvalNode(node parser.Node, c *Context) (Object, error) {
 		return evalString(node, c)
 	case *parser.BoolNode:
 		return evalBool(node, c)
+	case *parser.NilNode:
+		return &NilObject{}, nil
 	case *parser.IdentifierNode:
 		return evalIdentifier(node, c)
 	case *parser.PrefixNode:

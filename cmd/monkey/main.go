@@ -46,7 +46,9 @@ func run(filename string) {
 		fmt.Printf("ERROR: %s\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("%s\n", obj.Inspect())
+	if obj.Type() != evaluator.NIL {
+		fmt.Printf("%s\n", obj.Inspect())
+	}
 }
 
 func main() {
