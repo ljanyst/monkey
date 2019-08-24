@@ -13,6 +13,7 @@ const PROMPT = ">> "
 func startRepl() {
 	fmt.Print("This is a monkey evaluator\n")
 	scanner := bufio.NewScanner(os.Stdin)
+	c := evaluator.NewContext()
 	for {
 		fmt.Print(PROMPT)
 		scanned := scanner.Scan()
@@ -21,9 +22,11 @@ func startRepl() {
 		}
 
 		line := scanner.Text()
-		err := evaluator.EvalString(line)
+		obj, err := evaluator.EvalString(line, c)
 		if err != nil {
 			fmt.Printf("ERROR: %s\n", err)
+		} else {
+			fmt.Printf("%s\n", obj.Inspect())
 		}
 	}
 
@@ -37,11 +40,13 @@ func run(filename string) {
 	}
 	defer file.Close()
 
-	err = evaluator.EvalReader(file)
+	c := evaluator.NewContext()
+	obj, err := evaluator.EvalReader(file, c)
 	if err != nil {
 		fmt.Printf("ERROR: %s\n", err)
 		os.Exit(1)
 	}
+	fmt.Printf("%s\n", obj.Inspect())
 }
 
 func main() {
