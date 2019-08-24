@@ -22,7 +22,7 @@ func startRepl() {
 		}
 
 		line := scanner.Text()
-		obj, err := evaluator.EvalString(line, c)
+		obj, err := evaluator.EvalString(line, c, "stdin")
 		if err != nil {
 			fmt.Printf("ERROR: %s\n", err)
 		} else {
@@ -41,7 +41,7 @@ func run(filename string) {
 	defer file.Close()
 
 	c := evaluator.NewContext()
-	obj, err := evaluator.EvalReader(file, c)
+	obj, err := evaluator.EvalReader(file, c, filename)
 	if err != nil {
 		fmt.Printf("ERROR: %s\n", err)
 		os.Exit(1)

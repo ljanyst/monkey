@@ -10,8 +10,8 @@ import (
 	"github.com/ljanyst/monkey/pkg/parser"
 )
 
-func EvalReader(reader io.Reader, c *Context) (Object, error) {
-	l := lexer.NewLexerFromReader(reader)
+func EvalReader(reader io.Reader, c *Context, name string) (Object, error) {
+	l := lexer.NewLexerFromReader(reader, name)
 	p := parser.NewParser(l)
 	program, err := p.Parse()
 	if err != nil {
@@ -21,14 +21,19 @@ func EvalReader(reader io.Reader, c *Context) (Object, error) {
 	return EvalNode(program, c)
 }
 
-func EvalString(code string, c *Context) (Object, error) {
-	return EvalReader(strings.NewReader(code), c)
+func EvalString(code string, c *Context, name string) (Object, error) {
+	return EvalReader(strings.NewReader(code), c, name)
 }
 
 func mkErrUnexpectedType(exp, got ObjectType, node parser.Node) error {
-	return fmt.Errorf("Expected type %s got %s for expression %q at line %d",
-		exp, got, node.String(""), node.Token().Line,
+	return fmt.Errorf("%s Eval error: Expected type %s, got %s for expression %q",
+		node.Token().Location(), exp, got, node.String(""),
 	)
+}
+
+func mkErrWrongToken(expected string, got lexer.Token) error {
+	lit := got.Literal
+	return fmt.Errorf("%s Eval error: expected %s, got %q", got.Location(), expected, lit)
 }
 
 func evalBlock(node parser.Node, c *Context) (Object, error) {
@@ -75,7 +80,7 @@ func evalIdentifier(node parser.Node, c *Context) (Object, error) {
 	obj, err := c.Resolve(identNode.Value)
 	if err != nil {
 		tok := node.Token()
-		return nil, fmt.Errorf("Evaluation error at (%d, %d): %s", tok.Line, tok.Column, err)
+		return nil, fmt.Errorf("%s Eval error: %s", tok.Location(), err)
 	}
 	return obj, nil
 }
@@ -108,7 +113,7 @@ func evalAssign(node parser.Node, c *Context) (Object, error) {
 	assignNode := node.(*parser.InfixNode)
 	tok := assignNode.Left.Token()
 	if tok.Type != lexer.IDENT {
-		return nil, fmt.Errorf("Expected identifier got %q at (%d:%d)", tok.Literal, tok.Line, tok.Column)
+		return nil, mkErrWrongToken("identifier", tok)
 	}
 
 	identNode := assignNode.Left.(*parser.IdentifierNode)
@@ -120,7 +125,7 @@ func evalAssign(node parser.Node, c *Context) (Object, error) {
 
 	err = c.Set(identNode.Value, obj)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s Eval error: %s", tok.Location(), err)
 	}
 
 	return obj, nil
@@ -184,13 +189,13 @@ func evalLet(node parser.Node, c *Context) (Object, error) {
 	child := node.Children()[0]
 	tok := child.Token()
 	if tok.Type != lexer.ASSIGN {
-		return nil, fmt.Errorf("Expected assignment got %q at (%d:%d)", tok.Literal, tok.Line, tok.Column)
+		return nil, mkErrWrongToken("assignment", tok)
 	}
 
 	assignNode := child.(*parser.InfixNode)
 	tok = assignNode.Left.Token()
 	if tok.Type != lexer.IDENT {
-		return nil, fmt.Errorf("Expected identifier got %q at (%d:%d)", tok.Literal, tok.Line, tok.Column)
+		return nil, mkErrWrongToken("identifier", tok)
 	}
 
 	identNode := assignNode.Left.(*parser.IdentifierNode)
@@ -202,7 +207,7 @@ func evalLet(node parser.Node, c *Context) (Object, error) {
 
 	err = c.Create(identNode.Value, obj)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s Eval error: %s", tok.Location(), err)
 	}
 
 	return obj, nil
@@ -233,10 +238,8 @@ func evalConditional(node parser.Node, c *Context) (Object, error) {
 		return nil, err
 	}
 
-	condTok := condNode.Condition.Token()
 	if condObj.Type() != BOOL {
-		return nil, fmt.Errorf("Expected boolean expression at (%d, %d), got %s", condTok.Line, condTok.Column,
-			condObj.Type())
+		return nil, mkErrUnexpectedType(BOOL, condObj.Type(), condNode.Condition)
 	}
 
 	if condObj.Value().(bool) {
@@ -253,7 +256,7 @@ func evalFunction(node parser.Node, c *Context) (Object, error) {
 	for _, param := range funcNode.Params {
 		tok := param.Token()
 		if tok.Type != lexer.IDENT {
-			return nil, fmt.Errorf("Expected an identifier at (%d, %d), got %s", tok.Line, tok.Column, tok.Type)
+			return nil, mkErrWrongToken("identifier", tok)
 		}
 		params = append(params, param.(*parser.IdentifierNode).Value)
 	}
@@ -265,7 +268,7 @@ func evalFunctionCall(node parser.Node, c *Context) (Object, error) {
 
 	tok := funcCallNode.Name.Token()
 	if tok.Type != lexer.IDENT {
-		return nil, fmt.Errorf("Expected an identifier at (%d, %d), got %q", tok.Line, tok.Column, tok.Literal)
+		return nil, mkErrWrongToken("identifier", tok)
 	}
 	name := funcCallNode.Name.(*parser.IdentifierNode).Value
 
@@ -275,15 +278,14 @@ func evalFunctionCall(node parser.Node, c *Context) (Object, error) {
 	}
 
 	if fObj.Type() != FUNCTION {
-		return nil, fmt.Errorf("Expected %q at (%d, %d) to be a function, got %s", name, tok.Line, tok.Column,
-			fObj.Type())
+		return nil, mkErrUnexpectedType(FUNCTION, fObj.Type(), funcCallNode.Name)
 	}
 
 	f := fObj.(*FunctionObject)
 
 	if len(f.Params) != len(funcCallNode.Args) {
-		return nil, fmt.Errorf("Expected %d params for %q at (%d, %d), got %d", len(f.Params), name,
-			tok.Line, tok.Column, len(funcCallNode.Args))
+		return nil, fmt.Errorf("%s Eval error: Expected %d params for %q, got %d",
+			funcCallNode.Token().Location(), len(f.Params), name, len(funcCallNode.Args))
 	}
 
 	paramContext := f.ParentContext.ChildContext()
@@ -338,11 +340,9 @@ func EvalNode(node parser.Node, c *Context) (Object, error) {
 		return evalFunctionCall(node, c)
 	default:
 		return nil,
-			fmt.Errorf("Evaluator not implemented for node type %s created for %s at (%d:%d)",
+			fmt.Errorf("%s Eval error: Evaluator not implemented for %s",
+				node.Token().Location(),
 				reflect.ValueOf(node).Elem().Type(),
-				node.Token().Literal,
-				node.Token().Line,
-				node.Token().Column,
 			)
 	}
 }

@@ -36,30 +36,27 @@ func (p *Parser) nextToken() lexer.Token {
 	return tok
 }
 
-func (p *Parser) mkErrWrongToken(expected string, got lexer.Token) error {
+func mkErrWrongToken(expected string, got lexer.Token) error {
 	lit := got.Literal
 	if got.Type == lexer.EOF {
 		lit = "end of input"
 	}
-	return fmt.Errorf("Parsing error: expected %s, got %s at %d:%d",
-		expected, lit,
-		got.Line, got.Column)
+	return fmt.Errorf("%s Parsing error: expected %s, got %q", got.Location(), expected, lit)
 }
 
-func (p *Parser) mkErrUnexpectedToken(got lexer.Token) error {
-	return fmt.Errorf("Parsing error: Unexpected token %q at %d:%d",
-		got.Literal, got.Line, got.Column)
+func mkErrUnexpectedToken(got lexer.Token) error {
+	return fmt.Errorf("%s Parsing error: Unexpected token %q", got.Location(), got.Literal)
 }
 
 func (p *Parser) parseInt() (Node, error) {
 	tok := p.lexer.ReadToken()
 	if tok.Type != lexer.INT {
-		return nil, p.mkErrWrongToken("integer", tok)
+		return nil, mkErrWrongToken("integer", tok)
 	}
 
 	i64, err := strconv.ParseInt(tok.Literal, 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("Parsing error: %s is not an integer literal", tok.Literal)
+		return nil, mkErrWrongToken("integer literal", tok)
 	}
 
 	return &IntNode{tok, i64}, nil
@@ -68,7 +65,7 @@ func (p *Parser) parseInt() (Node, error) {
 func (p *Parser) parseString() (Node, error) {
 	tok := p.lexer.ReadToken()
 	if tok.Type != lexer.STRING {
-		return nil, p.mkErrWrongToken("string", tok)
+		return nil, mkErrWrongToken("string", tok)
 	}
 	return &StringNode{tok, tok.Literal}, nil
 }
@@ -76,7 +73,7 @@ func (p *Parser) parseString() (Node, error) {
 func (p *Parser) parseIdent() (Node, error) {
 	tok := p.lexer.ReadToken()
 	if tok.Type != lexer.IDENT {
-		return nil, p.mkErrWrongToken("identifier", tok)
+		return nil, mkErrWrongToken("identifier", tok)
 	}
 	return &IdentifierNode{tok, tok.Literal}, nil
 }
@@ -84,7 +81,7 @@ func (p *Parser) parseIdent() (Node, error) {
 func (p *Parser) parseBool() (Node, error) {
 	tok := p.lexer.ReadToken()
 	if tok.Type != lexer.TRUE && tok.Type != lexer.FALSE {
-		return nil, p.mkErrWrongToken("boolean", tok)
+		return nil, mkErrWrongToken("boolean", tok)
 	}
 	if tok.Type == lexer.TRUE {
 		return &BoolNode{tok, true}, nil
@@ -118,7 +115,7 @@ func (p *Parser) parseParen() (Node, error) {
 	}
 	tok = p.lexer.ReadToken()
 	if tok.Type != lexer.RPAREN {
-		return nil, p.mkErrWrongToken(")", tok)
+		return nil, mkErrWrongToken(")", tok)
 	}
 	return exp, nil
 }
@@ -128,7 +125,7 @@ func (p *Parser) parseBlock() (Node, error) {
 
 	tok := p.lexer.ReadToken()
 	if tok.Type != lexer.LBRACE {
-		return nil, p.mkErrWrongToken("{", tok)
+		return nil, mkErrWrongToken("{", tok)
 	}
 
 	for {
@@ -145,7 +142,7 @@ func (p *Parser) parseBlock() (Node, error) {
 
 	tok = p.lexer.ReadToken()
 	if tok.Type != lexer.RBRACE {
-		return nil, p.mkErrWrongToken("}", tok)
+		return nil, mkErrWrongToken("}", tok)
 	}
 
 	return &n, nil
@@ -156,7 +153,7 @@ func (p *Parser) parseConditional() (Node, error) {
 	tok := p.lexer.ReadToken()
 
 	if tok.Type != lexer.LPAREN {
-		return nil, p.mkErrWrongToken("(", tok)
+		return nil, mkErrWrongToken("(", tok)
 	}
 
 	condition, err := p.parseExpression(LOWEST)
@@ -166,7 +163,7 @@ func (p *Parser) parseConditional() (Node, error) {
 
 	tok = p.lexer.ReadToken()
 	if tok.Type != lexer.RPAREN {
-		return nil, p.mkErrWrongToken(")", tok)
+		return nil, mkErrWrongToken(")", tok)
 	}
 
 	consequent, err := p.parseBlock()
@@ -187,7 +184,7 @@ func (p *Parser) parseConditional() (Node, error) {
 
 func (p *Parser) parseAssign(left Node) (Node, error) {
 	if left.Token().Type != lexer.IDENT {
-		return nil, p.mkErrWrongToken("identifier", left.Token())
+		return nil, mkErrWrongToken("identifier", left.Token())
 	}
 
 	tok := p.lexer.ReadToken()
@@ -215,7 +212,7 @@ func (p *Parser) parseFunction() (Node, error) {
 
 	tok := p.lexer.ReadToken()
 	if tok.Type != lexer.LPAREN {
-		return nil, p.mkErrWrongToken("(", tok)
+		return nil, mkErrWrongToken("(", tok)
 	}
 
 	params := []Node{}
@@ -235,7 +232,7 @@ func (p *Parser) parseFunction() (Node, error) {
 
 		tok = p.nextToken()
 		if tok.Type != lexer.COMMA && tok.Type != lexer.RPAREN {
-			return nil, p.mkErrWrongToken(", or )", tok)
+			return nil, mkErrWrongToken(", or )", tok)
 		}
 		if tok.Type == lexer.COMMA {
 			p.lexer.ReadToken()
@@ -298,7 +295,7 @@ func (p *Parser) parseExpression(priority int) (Node, error) {
 
 	prefixParser, hasParser := p.prefixParsers[tok.Type]
 	if !hasParser {
-		return nil, p.mkErrUnexpectedToken(tok)
+		return nil, mkErrUnexpectedToken(tok)
 	}
 
 	left, err := prefixParser()
@@ -317,7 +314,7 @@ func (p *Parser) parseExpression(priority int) (Node, error) {
 				p.lexer.ReadToken()
 				return left, nil
 			}
-			return nil, p.mkErrUnexpectedToken(tok)
+			return nil, mkErrUnexpectedToken(tok)
 		}
 
 		left, err = infixParser(left)
@@ -345,7 +342,7 @@ func (p *Parser) parsePrimaryExpression() (Node, error) {
 
 	tok := p.lexer.ReadToken()
 	if tok.Type != lexer.SEMICOLON {
-		return nil, p.mkErrWrongToken("semicolon", tok)
+		return nil, mkErrWrongToken("semicolon", tok)
 	}
 	return node, nil
 }

@@ -1,5 +1,9 @@
 package lexer
 
+import (
+	"fmt"
+)
+
 type TokenType string
 
 const (
@@ -36,10 +40,15 @@ const (
 )
 
 type Token struct {
-	Type    TokenType
-	Literal string
-	Line    uint32
-	Column  uint32
+	Type     TokenType
+	Literal  string
+	Line     uint32
+	Column   uint32
+	FileName *string
+}
+
+func (t Token) Location() string {
+	return fmt.Sprintf("[%s:%d:%d]", *t.FileName, t.Line, t.Column)
 }
 
 var keywords = map[string]TokenType{

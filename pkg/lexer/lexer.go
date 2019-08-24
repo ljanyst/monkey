@@ -14,21 +14,23 @@ type Lexer struct {
 	curRune    rune
 	curToken   Token
 	retCurrent bool
+	fileName   string
 }
 
-func NewLexerFromString(input string) *Lexer {
-	return NewLexerFromReader(strings.NewReader(input))
+func NewLexerFromString(input, name string) *Lexer {
+	return NewLexerFromReader(strings.NewReader(input), name)
 }
 
-func NewLexerFromReader(input io.Reader) *Lexer {
+func NewLexerFromReader(input io.Reader, name string) *Lexer {
 	l := new(Lexer)
 	l.reader = bufio.NewReader(input)
 	l.line = 1
+	l.fileName = name
 	return l
 }
 
 func (l *Lexer) mkToken(t TokenType) Token {
-	return Token{t, string(l.curRune), l.line, l.column}
+	return Token{t, string(l.curRune), l.line, l.column, &l.fileName}
 }
 
 func (l *Lexer) maybeConsume(r rune) bool {
@@ -69,14 +71,14 @@ func (l *Lexer) readIdentifier() Token {
 	}
 	ident := l.gather(pred)
 
-	return Token{IDENT, ident, l.line, startCol}
+	return Token{IDENT, ident, l.line, startCol, &l.fileName}
 }
 
 func (l *Lexer) readNumber() Token {
 	startCol := l.column
 	number := l.gather(unicode.IsDigit)
 
-	return Token{INT, number, l.line, startCol}
+	return Token{INT, number, l.line, startCol, &l.fileName}
 }
 
 func (l *Lexer) readString() Token {
@@ -89,7 +91,7 @@ func (l *Lexer) readString() Token {
 
 	for {
 		if !l.maybeConsumePred(pred) {
-			return Token{INVALID, string(append([]rune{'"'}, str...)), l.line, startCol}
+			return Token{INVALID, string(append([]rune{'"'}, str...)), l.line, startCol, &l.fileName}
 		}
 
 		if l.curRune == '"' {
@@ -97,7 +99,7 @@ func (l *Lexer) readString() Token {
 		}
 		str = append(str, l.curRune)
 	}
-	return Token{STRING, string(str), l.line, startCol}
+	return Token{STRING, string(str), l.line, startCol, &l.fileName}
 }
 
 func (l *Lexer) nextToken() Token {
@@ -105,7 +107,7 @@ func (l *Lexer) nextToken() Token {
 		var err error
 		l.curRune, _, err = l.reader.ReadRune()
 		if err != nil {
-			return Token{EOF, "", l.line, l.column}
+			return Token{EOF, "", l.line, l.column, &l.fileName}
 		}
 
 		if l.curRune == '\n' {
@@ -122,7 +124,7 @@ func (l *Lexer) nextToken() Token {
 		switch l.curRune {
 		case '=':
 			if l.maybeConsume('=') {
-				return Token{EQ, "==", l.line, l.column - 1}
+				return Token{EQ, "==", l.line, l.column - 1, &l.fileName}
 			}
 			return l.mkToken(ASSIGN)
 		case ';':
@@ -141,7 +143,7 @@ func (l *Lexer) nextToken() Token {
 			return l.mkToken(RBRACE)
 		case '!':
 			if l.maybeConsume('=') {
-				return Token{NOT_EQ, "!=", l.line, l.column - 1}
+				return Token{NOT_EQ, "!=", l.line, l.column - 1, &l.fileName}
 			}
 			return l.mkToken(BANG)
 		case '-':
@@ -152,12 +154,12 @@ func (l *Lexer) nextToken() Token {
 			return l.mkToken(ASTERISK)
 		case '<':
 			if l.maybeConsume('=') {
-				return Token{LE, "<=", l.line, l.column - 1}
+				return Token{LE, "<=", l.line, l.column - 1, &l.fileName}
 			}
 			return l.mkToken(LT)
 		case '>':
 			if l.maybeConsume('=') {
-				return Token{GE, ">=", l.line, l.column - 1}
+				return Token{GE, ">=", l.line, l.column - 1, &l.fileName}
 			}
 			return l.mkToken(GT)
 		default:

@@ -11,6 +11,8 @@ import (
 var printAst = flag.Bool("print-ast", false, "print the AST")
 var printProgram = flag.Bool("print-program", false, "print the parsed program")
 
+const input = "input"
+
 func compareAst(t *testing.T, got, expected Node, print bool, depth string) bool {
 	if got == nil || expected == nil {
 		if expected == got {
@@ -50,7 +52,7 @@ func compareAst(t *testing.T, got, expected Node, print bool, depth string) bool
 }
 
 func parseAndCompareAst(t *testing.T, input string, expected Node) bool {
-	l := lexer.NewLexerFromString(input)
+	l := lexer.NewLexerFromString(input, "input")
 	p := NewParser(l)
 	parsed, err := p.Parse()
 	if err != nil {
@@ -80,38 +82,39 @@ false;
 `
 
 	expected := BlockNode{
+		true,
 		[]Node{
 			&IntNode{
-				lexer.Token{lexer.INT, "10", 1, 1},
+				lexer.Token{lexer.INT, "10", 1, 1, &input},
 				10,
 			},
 			&StringNode{
-				lexer.Token{lexer.STRING, "zażółć gęślą jaźń", 2, 1},
+				lexer.Token{lexer.STRING, "zażółć gęślą jaźń", 2, 1, &input},
 				"zażółć gęślą jaźń",
 			},
 			&IdentifierNode{
-				lexer.Token{lexer.IDENT, "test", 3, 1},
+				lexer.Token{lexer.IDENT, "test", 3, 1, &input},
 				"test",
 			},
 			&BoolNode{
-				lexer.Token{lexer.TRUE, "true", 4, 1},
+				lexer.Token{lexer.TRUE, "true", 4, 1, &input},
 				true,
 			},
 			&BoolNode{
-				lexer.Token{lexer.FALSE, "false", 5, 1},
+				lexer.Token{lexer.FALSE, "false", 5, 1, &input},
 				false,
 			},
 			&PrefixNode{
-				lexer.Token{lexer.BANG, "!", 6, 1},
+				lexer.Token{lexer.BANG, "!", 6, 1, &input},
 				&BoolNode{
-					lexer.Token{lexer.TRUE, "true", 6, 2},
+					lexer.Token{lexer.TRUE, "true", 6, 2, &input},
 					true,
 				},
 			},
 			&PrefixNode{
-				lexer.Token{lexer.MINUS, "-", 7, 1},
+				lexer.Token{lexer.MINUS, "-", 7, 1, &input},
 				&IntNode{
-					lexer.Token{lexer.INT, "10", 7, 2},
+					lexer.Token{lexer.INT, "10", 7, 2, &input},
 					10,
 				},
 			},
@@ -134,225 +137,226 @@ func TestInfixPriority(t *testing.T) {
 -(12 + 4);
 `
 	expected := BlockNode{
+		true,
 		[]Node{
 			&InfixNode{
-				lexer.Token{lexer.PLUS, "+", 1, 4},
+				lexer.Token{lexer.PLUS, "+", 1, 4, &input},
 				&IntNode{
-					lexer.Token{lexer.INT, "10", 1, 1},
+					lexer.Token{lexer.INT, "10", 1, 1, &input},
 					10,
 				},
 				&IntNode{
-					lexer.Token{lexer.INT, "2", 1, 6},
+					lexer.Token{lexer.INT, "2", 1, 6, &input},
 					2,
 				},
 			},
 			&InfixNode{
-				lexer.Token{lexer.ASTERISK, "*", 2, 3},
+				lexer.Token{lexer.ASTERISK, "*", 2, 3, &input},
 				&IntNode{
-					lexer.Token{lexer.INT, "3", 2, 1},
+					lexer.Token{lexer.INT, "3", 2, 1, &input},
 					3,
 				},
 				&IntNode{
-					lexer.Token{lexer.INT, "20", 2, 5},
+					lexer.Token{lexer.INT, "20", 2, 5, &input},
 					20,
 				},
 			},
 			&InfixNode{
-				lexer.Token{lexer.PLUS, "+", 3, 4},
+				lexer.Token{lexer.PLUS, "+", 3, 4, &input},
 				&IntNode{
-					lexer.Token{lexer.INT, "10", 3, 1},
+					lexer.Token{lexer.INT, "10", 3, 1, &input},
 					10,
 				},
 				&InfixNode{
-					lexer.Token{lexer.ASTERISK, "*", 3, 8},
+					lexer.Token{lexer.ASTERISK, "*", 3, 8, &input},
 					&IntNode{
-						lexer.Token{lexer.INT, "2", 3, 6},
+						lexer.Token{lexer.INT, "2", 3, 6, &input},
 						2,
 					},
 					&IntNode{
-						lexer.Token{lexer.INT, "6", 3, 10},
+						lexer.Token{lexer.INT, "6", 3, 10, &input},
 						6,
 					},
 				},
 			},
 			&InfixNode{
-				lexer.Token{lexer.PLUS, "+", 4, 8},
+				lexer.Token{lexer.PLUS, "+", 4, 8, &input},
 				&InfixNode{
-					lexer.Token{lexer.ASTERISK, "*", 4, 4},
+					lexer.Token{lexer.ASTERISK, "*", 4, 4, &input},
 					&IntNode{
-						lexer.Token{lexer.INT, "12", 4, 1},
+						lexer.Token{lexer.INT, "12", 4, 1, &input},
 						12,
 					},
 					&IntNode{
-						lexer.Token{lexer.INT, "7", 4, 8},
+						lexer.Token{lexer.INT, "7", 4, 8, &input},
 						7,
 					},
 				},
 				&IntNode{
-					lexer.Token{lexer.INT, "12", 4, 10},
+					lexer.Token{lexer.INT, "12", 4, 10, &input},
 					12,
 				},
 			},
 			&InfixNode{
-				lexer.Token{lexer.PLUS, "+", 5, 8},
+				lexer.Token{lexer.PLUS, "+", 5, 8, &input},
 				&InfixNode{
-					lexer.Token{lexer.ASTERISK, "*", 5, 4},
+					lexer.Token{lexer.ASTERISK, "*", 5, 4, &input},
 					&IntNode{
-						lexer.Token{lexer.INT, "12", 5, 1},
+						lexer.Token{lexer.INT, "12", 5, 1, &input},
 						12,
 					},
 					&IntNode{
-						lexer.Token{lexer.INT, "7", 5, 8},
+						lexer.Token{lexer.INT, "7", 5, 8, &input},
 						7,
 					},
 				},
 				&InfixNode{
-					lexer.Token{lexer.ASTERISK, "*", 5, 13},
+					lexer.Token{lexer.ASTERISK, "*", 5, 13, &input},
 					&IntNode{
-						lexer.Token{lexer.INT, "12", 5, 10},
+						lexer.Token{lexer.INT, "12", 5, 10, &input},
 						12,
 					},
 					&IntNode{
-						lexer.Token{lexer.INT, "8", 5, 15},
+						lexer.Token{lexer.INT, "8", 5, 15, &input},
 						8,
 					},
 				},
 			},
 			&InfixNode{
-				lexer.Token{lexer.PLUS, "+", 6, 3},
+				lexer.Token{lexer.PLUS, "+", 6, 3, &input},
 				&IntNode{
-					lexer.Token{lexer.INT, "2", 6, 1},
+					lexer.Token{lexer.INT, "2", 6, 1, &input},
 					2,
 				},
 				&InfixNode{
-					lexer.Token{lexer.ASTERISK, "*", 6, 15},
+					lexer.Token{lexer.ASTERISK, "*", 6, 15, &input},
 					&InfixNode{
-						lexer.Token{lexer.ASTERISK, "*", 6, 11},
+						lexer.Token{lexer.ASTERISK, "*", 6, 11, &input},
 						&InfixNode{
-							lexer.Token{lexer.ASTERISK, "*", 6, 7},
+							lexer.Token{lexer.ASTERISK, "*", 6, 7, &input},
 							&IntNode{
-								lexer.Token{lexer.INT, "4", 6, 5},
+								lexer.Token{lexer.INT, "4", 6, 5, &input},
 								4,
 							},
 							&IntNode{
-								lexer.Token{lexer.INT, "5", 6, 9},
+								lexer.Token{lexer.INT, "5", 6, 9, &input},
 								5,
 							},
 						},
 						&IntNode{
-							lexer.Token{lexer.INT, "6", 6, 13},
+							lexer.Token{lexer.INT, "6", 6, 13, &input},
 							6,
 						},
 					},
 					&IntNode{
-						lexer.Token{lexer.INT, "7", 6, 17},
+						lexer.Token{lexer.INT, "7", 6, 17, &input},
 						7,
 					},
 				},
 			},
 			&InfixNode{
-				lexer.Token{lexer.PLUS, "+", 7, 9},
+				lexer.Token{lexer.PLUS, "+", 7, 9, &input},
 				&InfixNode{
-					lexer.Token{lexer.ASTERISK, "*", 7, 5},
+					lexer.Token{lexer.ASTERISK, "*", 7, 5, &input},
 					&PrefixNode{
-						lexer.Token{lexer.MINUS, "-", 7, 1},
+						lexer.Token{lexer.MINUS, "-", 7, 1, &input},
 						&IntNode{
-							lexer.Token{lexer.INT, "12", 7, 2},
+							lexer.Token{lexer.INT, "12", 7, 2, &input},
 							12,
 						},
 					},
 					&IntNode{
-						lexer.Token{lexer.INT, "7", 7, 9},
+						lexer.Token{lexer.INT, "7", 7, 9, &input},
 						7,
 					},
 				},
 				&InfixNode{
-					lexer.Token{lexer.ASTERISK, "*", 7, 14},
+					lexer.Token{lexer.ASTERISK, "*", 7, 14, &input},
 					&IntNode{
-						lexer.Token{lexer.INT, "12", 7, 11},
+						lexer.Token{lexer.INT, "12", 7, 11, &input},
 						12,
 					},
 					&PrefixNode{
-						lexer.Token{lexer.MINUS, "-", 7, 16},
+						lexer.Token{lexer.MINUS, "-", 7, 16, &input},
 						&IntNode{
-							lexer.Token{lexer.INT, "8", 7, 17},
+							lexer.Token{lexer.INT, "8", 7, 17, &input},
 							8,
 						},
 					},
 				},
 			},
 			&InfixNode{
-				lexer.Token{lexer.EQ, "==", 8, 9},
+				lexer.Token{lexer.EQ, "==", 8, 9, &input},
 				&InfixNode{
-					lexer.Token{lexer.ASTERISK, "*", 8, 5},
+					lexer.Token{lexer.ASTERISK, "*", 8, 5, &input},
 					&PrefixNode{
-						lexer.Token{lexer.MINUS, "-", 8, 1},
+						lexer.Token{lexer.MINUS, "-", 8, 1, &input},
 						&IntNode{
-							lexer.Token{lexer.INT, "12", 8, 2},
+							lexer.Token{lexer.INT, "12", 8, 2, &input},
 							12,
 						},
 					},
 					&IntNode{
-						lexer.Token{lexer.INT, "7", 8, 9},
+						lexer.Token{lexer.INT, "7", 8, 9, &input},
 						7,
 					},
 				},
 				&InfixNode{
-					lexer.Token{lexer.PLUS, "+", 8, 15},
+					lexer.Token{lexer.PLUS, "+", 8, 15, &input},
 					&IntNode{
-						lexer.Token{lexer.INT, "12", 8, 12},
+						lexer.Token{lexer.INT, "12", 8, 12, &input},
 						12,
 					},
 					&PrefixNode{
-						lexer.Token{lexer.MINUS, "-", 8, 17},
+						lexer.Token{lexer.MINUS, "-", 8, 17, &input},
 						&IntNode{
-							lexer.Token{lexer.INT, "8", 8, 18},
+							lexer.Token{lexer.INT, "8", 8, 18, &input},
 							8,
 						},
 					},
 				},
 			},
 			&InfixNode{
-				lexer.Token{lexer.ASTERISK, "*", 9, 16},
+				lexer.Token{lexer.ASTERISK, "*", 9, 16, &input},
 				&InfixNode{
-					lexer.Token{lexer.ASTERISK, "*", 9, 5},
+					lexer.Token{lexer.ASTERISK, "*", 9, 5, &input},
 					&PrefixNode{
-						lexer.Token{lexer.MINUS, "-", 9, 1},
+						lexer.Token{lexer.MINUS, "-", 9, 1, &input},
 						&IntNode{
-							lexer.Token{lexer.INT, "12", 9, 2},
+							lexer.Token{lexer.INT, "12", 9, 2, &input},
 							12,
 						},
 					},
 					&InfixNode{
-						lexer.Token{lexer.PLUS, "+", 9, 10},
+						lexer.Token{lexer.PLUS, "+", 9, 10, &input},
 						&IntNode{
-							lexer.Token{lexer.INT, "7", 9, 8},
+							lexer.Token{lexer.INT, "7", 9, 8, &input},
 							7,
 						},
 						&IntNode{
-							lexer.Token{lexer.INT, "12", 9, 12},
+							lexer.Token{lexer.INT, "12", 9, 12, &input},
 							12,
 						},
 					},
 				},
 				&PrefixNode{
-					lexer.Token{lexer.MINUS, "-", 9, 18},
+					lexer.Token{lexer.MINUS, "-", 9, 18, &input},
 					&IntNode{
-						lexer.Token{lexer.INT, "8", 9, 19},
+						lexer.Token{lexer.INT, "8", 9, 19, &input},
 						8,
 					},
 				},
 			},
 			&PrefixNode{
-				lexer.Token{lexer.MINUS, "-", 10, 1},
+				lexer.Token{lexer.MINUS, "-", 10, 1, &input},
 				&InfixNode{
-					lexer.Token{lexer.PLUS, "+", 10, 6},
+					lexer.Token{lexer.PLUS, "+", 10, 6, &input},
 					&IntNode{
-						lexer.Token{lexer.INT, "12", 10, 3},
+						lexer.Token{lexer.INT, "12", 10, 3, &input},
 						12,
 					},
 					&IntNode{
-						lexer.Token{lexer.INT, "4", 10, 8},
+						lexer.Token{lexer.INT, "4", 10, 8, &input},
 						4,
 					},
 				},
@@ -378,41 +382,43 @@ if (!flag) {
 };
 `
 	expected := BlockNode{
+		true,
 		[]Node{
 			&ConditionalNode{
-				lexer.Token{lexer.IF, "if", 2, 1},
+				lexer.Token{lexer.IF, "if", 2, 1, &input},
 				&InfixNode{
-					lexer.Token{lexer.LT, "<", 2, 8},
+					lexer.Token{lexer.LT, "<", 2, 8, &input},
 					&IntNode{
-						lexer.Token{lexer.INT, "12", 2, 5},
+						lexer.Token{lexer.INT, "12", 2, 5, &input},
 						12,
 					},
 					&IntNode{
-						lexer.Token{lexer.INT, "4", 2, 10},
+						lexer.Token{lexer.INT, "4", 2, 10, &input},
 						4,
 					},
 				},
 				&BlockNode{
+					false,
 					[]Node{
 						&InfixNode{
-							lexer.Token{lexer.ASTERISK, "*", 3, 5},
+							lexer.Token{lexer.ASTERISK, "*", 3, 5, &input},
 							&IntNode{
-								lexer.Token{lexer.INT, "3", 3, 3},
+								lexer.Token{lexer.INT, "3", 3, 3, &input},
 								3,
 							},
 							&IntNode{
-								lexer.Token{lexer.INT, "20", 3, 7},
+								lexer.Token{lexer.INT, "20", 3, 7, &input},
 								20,
 							},
 						},
 						&InfixNode{
-							lexer.Token{lexer.GE, ">=", 4, 6},
+							lexer.Token{lexer.GE, ">=", 4, 6, &input},
 							&IntNode{
-								lexer.Token{lexer.INT, "23", 4, 3},
+								lexer.Token{lexer.INT, "23", 4, 3, &input},
 								23,
 							},
 							&IntNode{
-								lexer.Token{lexer.INT, "20", 4, 9},
+								lexer.Token{lexer.INT, "20", 4, 9, &input},
 								20,
 							},
 						},
@@ -421,30 +427,32 @@ if (!flag) {
 				nil,
 			},
 			&ConditionalNode{
-				lexer.Token{lexer.IF, "if", 7, 1},
+				lexer.Token{lexer.IF, "if", 7, 1, &input},
 				&PrefixNode{
-					lexer.Token{lexer.BANG, "!", 7, 5},
+					lexer.Token{lexer.BANG, "!", 7, 5, &input},
 					&IdentifierNode{
-						lexer.Token{lexer.IDENT, "flag", 7, 6},
+						lexer.Token{lexer.IDENT, "flag", 7, 6, &input},
 						"flag",
 					},
 				},
 				&BlockNode{
+					false,
 					[]Node{
 						&BoolNode{
-							lexer.Token{lexer.FALSE, "false", 8, 3},
+							lexer.Token{lexer.FALSE, "false", 8, 3, &input},
 							false,
 						},
 					},
 				},
 				&BlockNode{
+					false,
 					[]Node{
 						&IntNode{
-							lexer.Token{lexer.INT, "10", 10, 3},
+							lexer.Token{lexer.INT, "10", 10, 3, &input},
 							10,
 						},
 						&StringNode{
-							lexer.Token{lexer.STRING, "test", 11, 3},
+							lexer.Token{lexer.STRING, "test", 11, 3, &input},
 							"test",
 						},
 					},
@@ -463,29 +471,30 @@ return !true;
 test = !false;
 `
 	expected := BlockNode{
+		true,
 		[]Node{
 			&StatementNode{
-				lexer.Token{lexer.LET, "let", 2, 1},
+				lexer.Token{lexer.LET, "let", 2, 1, &input},
 				&InfixNode{
-					lexer.Token{lexer.ASSIGN, "=", 2, 10},
+					lexer.Token{lexer.ASSIGN, "=", 2, 10, &input},
 					&IdentifierNode{
-						lexer.Token{lexer.IDENT, "test", 2, 5},
+						lexer.Token{lexer.IDENT, "test", 2, 5, &input},
 						"test",
 					},
 					&InfixNode{
-						lexer.Token{lexer.PLUS, "+", 2, 15},
+						lexer.Token{lexer.PLUS, "+", 2, 15, &input},
 						&IntNode{
-							lexer.Token{lexer.INT, "10", 2, 12},
+							lexer.Token{lexer.INT, "10", 2, 12, &input},
 							10,
 						},
 						&InfixNode{
-							lexer.Token{lexer.ASTERISK, "*", 2, 19},
+							lexer.Token{lexer.ASTERISK, "*", 2, 19, &input},
 							&IntNode{
-								lexer.Token{lexer.INT, "2", 2, 17},
+								lexer.Token{lexer.INT, "2", 2, 17, &input},
 								2,
 							},
 							&IntNode{
-								lexer.Token{lexer.INT, "6", 2, 21},
+								lexer.Token{lexer.INT, "6", 2, 21, &input},
 								6,
 							},
 						},
@@ -493,25 +502,25 @@ test = !false;
 				},
 			},
 			&StatementNode{
-				lexer.Token{lexer.RETURN, "return", 3, 1},
+				lexer.Token{lexer.RETURN, "return", 3, 1, &input},
 				&PrefixNode{
-					lexer.Token{lexer.BANG, "!", 3, 8},
+					lexer.Token{lexer.BANG, "!", 3, 8, &input},
 					&BoolNode{
-						lexer.Token{lexer.TRUE, "true", 3, 9},
+						lexer.Token{lexer.TRUE, "true", 3, 9, &input},
 						true,
 					},
 				},
 			},
 			&InfixNode{
-				lexer.Token{lexer.ASSIGN, "=", 4, 6},
+				lexer.Token{lexer.ASSIGN, "=", 4, 6, &input},
 				&IdentifierNode{
-					lexer.Token{lexer.IDENT, "test", 4, 1},
+					lexer.Token{lexer.IDENT, "test", 4, 1, &input},
 					"test",
 				},
 				&PrefixNode{
-					lexer.Token{lexer.BANG, "!", 4, 8},
+					lexer.Token{lexer.BANG, "!", 4, 8, &input},
 					&BoolNode{
-						lexer.Token{lexer.FALSE, "false", 4, 9},
+						lexer.Token{lexer.FALSE, "false", 4, 9, &input},
 						false,
 					},
 				},
@@ -535,50 +544,52 @@ fn(b) {
 };
 `
 	expected := BlockNode{
+		true,
 		[]Node{
 			&StatementNode{
-				lexer.Token{lexer.LET, "let", 2, 1},
+				lexer.Token{lexer.LET, "let", 2, 1, &input},
 				&InfixNode{
-					lexer.Token{lexer.ASSIGN, "=", 2, 10},
+					lexer.Token{lexer.ASSIGN, "=", 2, 10, &input},
 					&IdentifierNode{
-						lexer.Token{lexer.IDENT, "test", 2, 5},
+						lexer.Token{lexer.IDENT, "test", 2, 5, &input},
 						"test",
 					},
 					&FunctionNode{
-						lexer.Token{lexer.FUNCTION, "fn", 2, 12},
+						lexer.Token{lexer.FUNCTION, "fn", 2, 12, &input},
 						[]Node{
 							&IdentifierNode{
-								lexer.Token{lexer.IDENT, "a", 2, 15},
+								lexer.Token{lexer.IDENT, "a", 2, 15, &input},
 								"a",
 							},
 							&IdentifierNode{
-								lexer.Token{lexer.IDENT, "b", 2, 18},
+								lexer.Token{lexer.IDENT, "b", 2, 18, &input},
 								"b",
 							},
 							&IdentifierNode{
-								lexer.Token{lexer.IDENT, "c", 2, 21},
+								lexer.Token{lexer.IDENT, "c", 2, 21, &input},
 								"c",
 							},
 						},
 						&BlockNode{
+							false,
 							[]Node{
 								&StatementNode{
-									lexer.Token{lexer.RETURN, "return", 3, 1},
+									lexer.Token{lexer.RETURN, "return", 3, 1, &input},
 									&InfixNode{
-										lexer.Token{lexer.PLUS, "+", 3, 12},
+										lexer.Token{lexer.PLUS, "+", 3, 12, &input},
 										&InfixNode{
-											lexer.Token{lexer.ASTERISK, "*", 3, 4},
+											lexer.Token{lexer.ASTERISK, "*", 3, 4, &input},
 											&IdentifierNode{
-												lexer.Token{lexer.IDENT, "a", 3, 10},
+												lexer.Token{lexer.IDENT, "a", 3, 10, &input},
 												"a",
 											},
 											&IdentifierNode{
-												lexer.Token{lexer.IDENT, "b", 3, 14},
+												lexer.Token{lexer.IDENT, "b", 3, 14, &input},
 												"b",
 											},
 										},
 										&IdentifierNode{
-											lexer.Token{lexer.IDENT, "c", 3, 18},
+											lexer.Token{lexer.IDENT, "c", 3, 18, &input},
 											"c",
 										},
 									},
@@ -589,20 +600,21 @@ fn(b) {
 				},
 			},
 			&InfixNode{
-				lexer.Token{lexer.ASSIGN, "=", 5, 6},
+				lexer.Token{lexer.ASSIGN, "=", 5, 6, &input},
 				&IdentifierNode{
-					lexer.Token{lexer.IDENT, "test", 5, 1},
+					lexer.Token{lexer.IDENT, "test", 5, 1, &input},
 					"test",
 				},
 				&FunctionNode{
-					lexer.Token{lexer.FUNCTION, "fn", 5, 8},
+					lexer.Token{lexer.FUNCTION, "fn", 5, 8, &input},
 					[]Node{},
 					&BlockNode{
+						false,
 						[]Node{
 							&PrefixNode{
-								lexer.Token{lexer.BANG, "!", 6, 3},
+								lexer.Token{lexer.BANG, "!", 6, 3, &input},
 								&BoolNode{
-									lexer.Token{lexer.TRUE, "true", 6, 4},
+									lexer.Token{lexer.TRUE, "true", 6, 4, &input},
 									true,
 								},
 							},
@@ -611,19 +623,20 @@ fn(b) {
 				},
 			},
 			&FunctionNode{
-				lexer.Token{lexer.FUNCTION, "fn", 8, 1},
+				lexer.Token{lexer.FUNCTION, "fn", 8, 1, &input},
 				[]Node{
 					&IdentifierNode{
-						lexer.Token{lexer.IDENT, "b", 8, 4},
+						lexer.Token{lexer.IDENT, "b", 8, 4, &input},
 						"b",
 					},
 				},
 				&BlockNode{
+					false,
 					[]Node{
 						&StatementNode{
-							lexer.Token{lexer.RETURN, "return", 9, 3},
+							lexer.Token{lexer.RETURN, "return", 9, 3, &input},
 							&IdentifierNode{
-								lexer.Token{lexer.IDENT, "b", 9, 10},
+								lexer.Token{lexer.IDENT, "b", 9, 10, &input},
 								"b",
 							},
 						},
@@ -642,42 +655,43 @@ let test = testFn(10 + 2 * 6, test);
 17 + 4 * test(25 + 2);
 `
 	expected := BlockNode{
+		true,
 		[]Node{
 			&StatementNode{
-				lexer.Token{lexer.LET, "let", 2, 1},
+				lexer.Token{lexer.LET, "let", 2, 1, &input},
 				&InfixNode{
-					lexer.Token{lexer.ASSIGN, "=", 2, 10},
+					lexer.Token{lexer.ASSIGN, "=", 2, 10, &input},
 					&IdentifierNode{
-						lexer.Token{lexer.IDENT, "test", 2, 5},
+						lexer.Token{lexer.IDENT, "test", 2, 5, &input},
 						"test",
 					},
 					&FunctionCallNode{
-						lexer.Token{lexer.LPAREN, "(", 2, 18},
+						lexer.Token{lexer.LPAREN, "(", 2, 18, &input},
 						&IdentifierNode{
-							lexer.Token{lexer.IDENT, "testFn", 2, 12},
+							lexer.Token{lexer.IDENT, "testFn", 2, 12, &input},
 							"testFn",
 						},
 						[]Node{
 							&InfixNode{
-								lexer.Token{lexer.PLUS, "+", 2, 22},
+								lexer.Token{lexer.PLUS, "+", 2, 22, &input},
 								&IntNode{
-									lexer.Token{lexer.INT, "10", 2, 19},
+									lexer.Token{lexer.INT, "10", 2, 19, &input},
 									10,
 								},
 								&InfixNode{
-									lexer.Token{lexer.ASTERISK, "*", 2, 26},
+									lexer.Token{lexer.ASTERISK, "*", 2, 26, &input},
 									&IntNode{
-										lexer.Token{lexer.INT, "2", 2, 24},
+										lexer.Token{lexer.INT, "2", 2, 24, &input},
 										2,
 									},
 									&IntNode{
-										lexer.Token{lexer.INT, "6", 2, 28},
+										lexer.Token{lexer.INT, "6", 2, 28, &input},
 										6,
 									},
 								},
 							},
 							&IdentifierNode{
-								lexer.Token{lexer.IDENT, "test", 2, 31},
+								lexer.Token{lexer.IDENT, "test", 2, 31, &input},
 								"test",
 							},
 						},
@@ -685,32 +699,32 @@ let test = testFn(10 + 2 * 6, test);
 				},
 			},
 			&InfixNode{
-				lexer.Token{lexer.PLUS, "+", 3, 4},
+				lexer.Token{lexer.PLUS, "+", 3, 4, &input},
 				&IntNode{
-					lexer.Token{lexer.INT, "17", 3, 1},
+					lexer.Token{lexer.INT, "17", 3, 1, &input},
 					17,
 				},
 				&InfixNode{
-					lexer.Token{lexer.ASTERISK, "*", 3, 8},
+					lexer.Token{lexer.ASTERISK, "*", 3, 8, &input},
 					&IntNode{
-						lexer.Token{lexer.INT, "4", 3, 6},
+						lexer.Token{lexer.INT, "4", 3, 6, &input},
 						4,
 					},
 					&FunctionCallNode{
-						lexer.Token{lexer.LPAREN, "(", 3, 14},
+						lexer.Token{lexer.LPAREN, "(", 3, 14, &input},
 						&IdentifierNode{
-							lexer.Token{lexer.IDENT, "test", 3, 10},
+							lexer.Token{lexer.IDENT, "test", 3, 10, &input},
 							"test",
 						},
 						[]Node{
 							&InfixNode{
-								lexer.Token{lexer.PLUS, "+", 3, 18},
+								lexer.Token{lexer.PLUS, "+", 3, 18, &input},
 								&IntNode{
-									lexer.Token{lexer.INT, "25", 3, 15},
+									lexer.Token{lexer.INT, "25", 3, 15, &input},
 									25,
 								},
 								&IntNode{
-									lexer.Token{lexer.INT, "2", 3, 20},
+									lexer.Token{lexer.INT, "2", 3, 20, &input},
 									2,
 								},
 							},
