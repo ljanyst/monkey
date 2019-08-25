@@ -259,3 +259,46 @@ let x2 = funcOuter(1);
 
 	evaluateAndCompareResult(t, input, expected, sideEffects)
 }
+
+func TestStringSlicingAndConcat(t *testing.T) {
+	input := []string{`
+let test1 = "zażółć";
+let test2 = "gęślą";
+let test3 = "jaźń";
+let test4 = test1 + " " + test2 + " " + test3;
+`,
+		`
+let test1 = "zażółć gęślą jaźń";
+let test2 = test1[7:12];
+`,
+		`
+let test1 = "zażółć";
+let test2 = test1[5];
+`,
+	}
+
+	expected := []Object{
+		&StringObject{"zażółć gęślą jaźń"},
+		&StringObject{"gęślą"},
+		&RuneObject{'ć'},
+	}
+
+	sideEffects := []map[string]Object{
+		map[string]Object{
+			"test1": &StringObject{"zażółć"},
+			"test2": &StringObject{"gęślą"},
+			"test3": &StringObject{"jaźń"},
+			"test4": &StringObject{"zażółć gęślą jaźń"},
+		},
+		map[string]Object{
+			"test1": &StringObject{"zażółć gęślą jaźń"},
+			"test2": &StringObject{"gęślą"},
+		},
+		map[string]Object{
+			"test1": &StringObject{"zażółć"},
+			"test2": &RuneObject{'ć'},
+		},
+	}
+
+	evaluateAndCompareResult(t, input, expected, sideEffects)
+}
