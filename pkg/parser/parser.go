@@ -70,6 +70,14 @@ func (p *Parser) parseString() (Node, error) {
 	return &StringNode{tok, tok.Literal}, nil
 }
 
+func (p *Parser) parseRune() (Node, error) {
+	tok := p.lexer.ReadToken()
+	if tok.Type != lexer.RUNE {
+		return nil, mkErrWrongToken("rune", tok)
+	}
+	return &RuneNode{tok, []rune(tok.Literal)[0]}, nil
+}
+
 func (p *Parser) parseIdent() (Node, error) {
 	tok := p.lexer.ReadToken()
 	if tok.Type != lexer.IDENT {
@@ -378,6 +386,7 @@ func NewParser(lex *lexer.Lexer) *Parser {
 	p.prefixParsers = make(map[lexer.TokenType]prefixParseFn)
 	p.prefixParsers[lexer.INT] = p.parseInt
 	p.prefixParsers[lexer.STRING] = p.parseString
+	p.prefixParsers[lexer.RUNE] = p.parseRune
 	p.prefixParsers[lexer.IDENT] = p.parseIdent
 	p.prefixParsers[lexer.TRUE] = p.parseBool
 	p.prefixParsers[lexer.FALSE] = p.parseBool

@@ -80,6 +80,7 @@ false;
 !true;
 -10;
 nil;
+'ć';
 `
 
 	expected := BlockNode{
@@ -121,6 +122,10 @@ nil;
 			},
 			&NilNode{
 				lexer.Token{lexer.NIL, "nil", 8, 1, &input},
+			},
+			&RuneNode{
+				lexer.Token{lexer.RUNE, "ć", 9, 1, &input},
+				'ć',
 			},
 		},
 	}

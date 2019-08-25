@@ -28,6 +28,11 @@ type StringNode struct {
 	Value string
 }
 
+type RuneNode struct {
+	token lexer.Token
+	Value rune
+}
+
 type IdentifierNode struct {
 	token lexer.Token
 	Value string
@@ -148,6 +153,18 @@ func (n *BoolNode) Children() []Node {
 }
 
 func (n *BoolNode) Token() lexer.Token {
+	return n.token
+}
+
+func (n *RuneNode) String(padding string) string {
+	return fmt.Sprintf("%v", n.Value)
+}
+
+func (n *RuneNode) Children() []Node {
+	return []Node{}
+}
+
+func (n *RuneNode) Token() lexer.Token {
 	return n.token
 }
 
