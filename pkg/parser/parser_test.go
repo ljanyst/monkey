@@ -746,3 +746,94 @@ let test = testFn(10 + 2 * 6, test);
 
 	parseAndCompareAst(t, input, &expected)
 }
+
+func TestSlicing(t *testing.T) {
+	input := `
+test[1];
+test[1+6];
+test[0:4];
+test[0+1:4-2];
+`
+	expected := BlockNode{
+		true,
+		[]Node{
+			&SliceNode{
+				lexer.Token{lexer.LBRACKET, "[", 1, 5, &input},
+				&IdentifierNode{
+					lexer.Token{lexer.IDENT, "test", 1, 1, &input},
+					"test1",
+				},
+				&IntNode{
+					lexer.Token{lexer.INT, "1", 1, 6, &input},
+					1,
+				},
+				nil,
+			},
+			&SliceNode{
+				lexer.Token{lexer.LBRACKET, "[", 2, 5, &input},
+				&IdentifierNode{
+					lexer.Token{lexer.IDENT, "test", 2, 1, &input},
+					"test",
+				},
+				&InfixNode{
+					lexer.Token{lexer.PLUS, "+", 2, 7, &input},
+					&IntNode{
+						lexer.Token{lexer.INT, "1", 2, 6, &input},
+						1,
+					},
+					&IntNode{
+						lexer.Token{lexer.INT, "6", 2, 8, &input},
+						6,
+					},
+				},
+				nil,
+			},
+			&SliceNode{
+				lexer.Token{lexer.LBRACKET, "[", 3, 5, &input},
+				&IdentifierNode{
+					lexer.Token{lexer.IDENT, "test", 3, 1, &input},
+					"test",
+				},
+				&IntNode{
+					lexer.Token{lexer.INT, "0", 3, 6, &input},
+					0,
+				},
+				&IntNode{
+					lexer.Token{lexer.INT, "4", 3, 8, &input},
+					4,
+				},
+			},
+			&SliceNode{
+				lexer.Token{lexer.LBRACKET, "[", 4, 5, &input},
+				&IdentifierNode{
+					lexer.Token{lexer.IDENT, "test", 4, 1, &input},
+					"test",
+				},
+				&InfixNode{
+					lexer.Token{lexer.PLUS, "+", 4, 7, &input},
+					&IntNode{
+						lexer.Token{lexer.INT, "0", 4, 6, &input},
+						0,
+					},
+					&IntNode{
+						lexer.Token{lexer.INT, "1", 4, 8, &input},
+						1,
+					},
+				},
+				&InfixNode{
+					lexer.Token{lexer.MINUS, "-", 4, 11, &input},
+					&IntNode{
+						lexer.Token{lexer.INT, "4", 4, 10, &input},
+						4,
+					},
+					&IntNode{
+						lexer.Token{lexer.INT, "2", 4, 12, &input},
+						2,
+					},
+				},
+			},
+		},
+	}
+
+	parseAndCompareAst(t, input, &expected)
+}

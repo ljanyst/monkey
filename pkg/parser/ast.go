@@ -82,6 +82,13 @@ type FunctionCallNode struct {
 	Args  []Node
 }
 
+type SliceNode struct {
+	token   lexer.Token
+	Subject Node
+	Start   Node
+	End     Node
+}
+
 func (n *BlockNode) String(padding string) string {
 	var sb strings.Builder
 	sb.WriteString(padding)
@@ -275,5 +282,20 @@ func (n *NilNode) Children() []Node {
 }
 
 func (n *NilNode) Token() lexer.Token {
+	return n.token
+}
+
+func (n *SliceNode) String(padding string) string {
+	if n.End != nil {
+		return fmt.Sprintf("%s[%s:%s]", n.Subject.String(padding), n.Start.String(padding), n.End.String(padding))
+	}
+	return fmt.Sprintf("%s[%s]", n.Subject.String(padding), n.Start.String(padding))
+}
+
+func (n *SliceNode) Children() []Node {
+	return []Node{n.Subject, n.Start, n.End}
+}
+
+func (n *SliceNode) Token() lexer.Token {
 	return n.token
 }
