@@ -38,6 +38,7 @@ let żółwik = "zażółć gęślą jaźń";
 10 == 10;
 10 != 9;
 nil;
+'ć';
 `
 
 	tests := []Token{
@@ -129,6 +130,8 @@ nil;
 		{INT, "9", 0, 0, nil},
 		{SEMICOLON, ";", 0, 0, nil},
 		{NIL, "nil", 0, 0, nil},
+		{SEMICOLON, ";", 0, 0, nil},
+		{RUNE, "ć", 0, 0, nil},
 		{SEMICOLON, ";", 0, 0, nil},
 		{EOF, "", 0, 0, nil},
 	}

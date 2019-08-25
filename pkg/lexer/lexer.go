@@ -5,6 +5,7 @@ import (
 	"io"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 type Lexer struct {
@@ -81,7 +82,7 @@ func (l *Lexer) readNumber() Token {
 	return Token{INT, number, l.line, startCol, &l.fileName}
 }
 
-func (l *Lexer) readString() Token {
+func (l *Lexer) readString(delimiter rune) Token {
 	startCol := l.column
 	str := []rune{}
 
@@ -94,12 +95,22 @@ func (l *Lexer) readString() Token {
 			return Token{INVALID, string(append([]rune{'"'}, str...)), l.line, startCol, &l.fileName}
 		}
 
-		if l.curRune == '"' {
+		if l.curRune == delimiter {
 			break
 		}
 		str = append(str, l.curRune)
 	}
 	return Token{STRING, string(str), l.line, startCol, &l.fileName}
+}
+
+func (l *Lexer) readRune() Token {
+	tok := l.readString('\'')
+	if tok.Type == INVALID || utf8.RuneCountInString(tok.Literal) != 1 {
+		tok.Type = INVALID
+		return tok
+	}
+	tok.Type = RUNE
+	return tok
 }
 
 func (l *Lexer) nextToken() Token {
@@ -171,7 +182,9 @@ func (l *Lexer) nextToken() Token {
 			} else if unicode.IsDigit(l.curRune) {
 				return l.readNumber()
 			} else if l.curRune == '"' {
-				return l.readString()
+				return l.readString('"')
+			} else if l.curRune == '\'' {
+				return l.readRune()
 			}
 			return l.mkToken(INVALID)
 		}

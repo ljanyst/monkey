@@ -41,6 +41,7 @@ const (
 	BLOCK
 	EOF
 	NIL
+	RUNE
 )
 
 type Token struct {
