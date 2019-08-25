@@ -39,6 +39,7 @@ let żółwik = "zażółć gęślą jaźń";
 10 != 9;
 nil;
 'ć';
+for[a:b];
 `
 
 	tests := []Token{
@@ -132,6 +133,13 @@ nil;
 		{NIL, "nil", 0, 0, nil},
 		{SEMICOLON, ";", 0, 0, nil},
 		{RUNE, "ć", 0, 0, nil},
+		{SEMICOLON, ";", 0, 0, nil},
+		{FOR, "for", 0, 0, nil},
+		{LBRACKET, "[", 0, 0, nil},
+		{IDENT, "a", 0, 0, nil},
+		{COLON, ":", 0, 0, nil},
+		{IDENT, "b", 0, 0, nil},
+		{RBRACKET, "]", 0, 0, nil},
 		{SEMICOLON, ";", 0, 0, nil},
 		{EOF, "", 0, 0, nil},
 	}
