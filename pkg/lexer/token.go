@@ -42,6 +42,10 @@ const (
 	EOF
 	NIL
 	RUNE
+	LBRACKET
+	RBRACKET
+	COLON
+	FOR
 )
 
 type Token struct {
@@ -65,6 +69,7 @@ var keywords = map[string]TokenType{
 	"true":   TRUE,
 	"false":  FALSE,
 	"nil":    NIL,
+	"for":    FOR,
 }
 
 func LookupKeyword(ident string) TokenType {

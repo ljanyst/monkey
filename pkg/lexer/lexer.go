@@ -173,6 +173,12 @@ func (l *Lexer) nextToken() Token {
 				return Token{GE, ">=", l.line, l.column - 1, &l.fileName}
 			}
 			return l.mkToken(GT)
+		case '[':
+			return l.mkToken(LBRACKET)
+		case ']':
+			return l.mkToken(RBRACKET)
+		case ':':
+			return l.mkToken(COLON)
 		default:
 			if unicode.IsLetter(l.curRune) {
 				ident := l.readIdentifier()
