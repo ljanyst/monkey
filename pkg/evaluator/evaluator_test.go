@@ -64,6 +64,7 @@ func TestLiteralsAndIdentifiers(t *testing.T) {
 		"!true;",
 		"-10;",
 		"nil;",
+		"'ć';",
 	}
 
 	expected := []Object{
@@ -74,6 +75,7 @@ func TestLiteralsAndIdentifiers(t *testing.T) {
 		&BoolObject{false},
 		&IntObject{-10},
 		&NilObject{},
+		&RuneObject{'ć'},
 	}
 
 	evaluateAndCompareResult(t, input, expected, []map[string]Object{})

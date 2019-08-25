@@ -18,6 +18,7 @@ const (
 	RETURN
 	FUNCTION
 	NIL
+	RUNE
 )
 
 type Object interface {
@@ -35,6 +36,10 @@ type BoolObject struct {
 
 type StringObject struct {
 	Value string
+}
+
+type RuneObject struct {
+	Value rune
 }
 
 type ReturnObject struct {
@@ -75,6 +80,14 @@ func (o *StringObject) Inspect() string {
 
 func (o *StringObject) Type() ObjectType {
 	return STRING
+}
+
+func (o *RuneObject) Inspect() string {
+	return fmt.Sprintf("%q", o.Value)
+}
+
+func (o *RuneObject) Type() ObjectType {
+	return RUNE
 }
 
 func (o *ReturnObject) Inspect() string {

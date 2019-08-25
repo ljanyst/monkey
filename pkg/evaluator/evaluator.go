@@ -75,6 +75,10 @@ func evalBool(node parser.Node, c *Context) (Object, error) {
 	return &BoolObject{node.(*parser.BoolNode).Value}, nil
 }
 
+func evalRune(node parser.Node, c *Context) (Object, error) {
+	return &RuneObject{node.(*parser.RuneNode).Value}, nil
+}
+
 func evalIdentifier(node parser.Node, c *Context) (Object, error) {
 	identNode := node.(*parser.IdentifierNode)
 	obj, err := c.Resolve(identNode.Value)
@@ -324,6 +328,8 @@ func EvalNode(node parser.Node, c *Context) (Object, error) {
 		return evalString(node, c)
 	case *parser.BoolNode:
 		return evalBool(node, c)
+	case *parser.RuneNode:
+		return evalRune(node, c)
 	case *parser.NilNode:
 		return &NilObject{}, nil
 	case *parser.IdentifierNode:
