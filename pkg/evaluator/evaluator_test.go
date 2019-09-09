@@ -304,3 +304,89 @@ let test2 = test1[5];
 
 	evaluateAndCompareResult(t, input, expected, sideEffects)
 }
+
+func TestArraySlicingAndConcat(t *testing.T) {
+	input := []string{`
+let test1 = {"zażółć"};
+let test2 = {"gęślą"};
+let test3 = {"jaźń"};
+let test4 = test1 + test2 + test3;
+`,
+		`
+let test1 = {"zażółć", 12, 3 + 2, 'ł'};
+let test2 = test1[2:4];
+let test3 = {"zażółć", 12, 3 + 2, 'ł'}[2:4];
+`,
+		`
+let test1 = {"zażółć", 12, 3 + 2, 'ł'};
+let test2 = test1[2];
+`,
+	}
+
+	expected := []Object{
+		&ArrayObject{
+			[]Object{
+				&StringObject{"zażółć"},
+				&StringObject{"gęślą"},
+				&StringObject{"jaźń"},
+			},
+		},
+		&ArrayObject{
+			[]Object{
+				&IntObject{5},
+				&RuneObject{'ł'},
+			},
+		},
+		&IntObject{5},
+	}
+
+	sideEffects := []map[string]Object{
+		map[string]Object{
+			"test1": &ArrayObject{[]Object{&StringObject{"zażółć"}}},
+			"test2": &ArrayObject{[]Object{&StringObject{"gęślą"}}},
+			"test3": &ArrayObject{[]Object{&StringObject{"jaźń"}}},
+			"test4": &ArrayObject{
+				[]Object{
+					&StringObject{"zażółć"},
+					&StringObject{"gęślą"},
+					&StringObject{"jaźń"},
+				},
+			},
+		},
+		map[string]Object{
+			"test1": &ArrayObject{
+				[]Object{
+					&StringObject{"zażółć"},
+					&IntObject{12},
+					&IntObject{5},
+					&RuneObject{'ł'},
+				},
+			},
+			"test2": &ArrayObject{
+				[]Object{
+					&IntObject{5},
+					&RuneObject{'ł'},
+				},
+			},
+			"test3": &ArrayObject{
+				[]Object{
+					&IntObject{5},
+					&RuneObject{'ł'},
+				},
+			},
+		},
+		map[string]Object{
+			"test1": &ArrayObject{
+				[]Object{
+					&StringObject{"zażółć"},
+					&IntObject{12},
+					&IntObject{5},
+					&RuneObject{'ł'},
+				},
+			},
+			"test2": &IntObject{5},
+		},
+	}
+
+	evaluateAndCompareResult(t, input, expected, sideEffects)
+}
