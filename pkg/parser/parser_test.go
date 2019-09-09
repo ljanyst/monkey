@@ -837,3 +837,58 @@ test[0+1:4-2];
 
 	parseAndCompareAst(t, input, &expected)
 }
+
+func TestArrays(t *testing.T) {
+	input := `
+{};
+{1};
+{-1, 2 + 4, test};
+`
+	expected := BlockNode{
+		true,
+		[]Node{
+			&ArrayNode{
+				lexer.Token{lexer.LBRACE, "{", 2, 1, &input},
+				[]Node{},
+			},
+			&ArrayNode{
+				lexer.Token{lexer.LBRACE, "{", 3, 1, &input},
+				[]Node{
+					&IntNode{
+						lexer.Token{lexer.INT, "1", 3, 2, &input},
+						1,
+					},
+				},
+			},
+			&ArrayNode{
+				lexer.Token{lexer.LBRACE, "{", 4, 1, &input},
+				[]Node{
+					&PrefixNode{
+						lexer.Token{lexer.MINUS, "-", 4, 2, &input},
+						&IntNode{
+							lexer.Token{lexer.INT, "1", 4, 3, &input},
+							1,
+						},
+					},
+					&InfixNode{
+						lexer.Token{lexer.PLUS, "+", 4, 8, &input},
+						&IntNode{
+							lexer.Token{lexer.INT, "2", 4, 6, &input},
+							2,
+						},
+						&IntNode{
+							lexer.Token{lexer.INT, "4", 4, 10, &input},
+							4,
+						},
+					},
+					&IdentifierNode{
+						lexer.Token{lexer.IDENT, "test", 4, 13, &input},
+						"test",
+					},
+				},
+			},
+		},
+	}
+
+	parseAndCompareAst(t, input, &expected)
+}
