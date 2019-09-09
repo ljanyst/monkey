@@ -19,6 +19,7 @@ const (
 	FUNCTION
 	NIL
 	RUNE
+	ARRAY
 )
 
 type Object interface {
@@ -53,6 +54,10 @@ type FunctionObject struct {
 }
 
 type NilObject struct {
+}
+
+type ArrayObject struct {
+	Value []Object
 }
 
 func (o *IntObject) Inspect() string {
@@ -121,4 +126,21 @@ func (o *NilObject) Inspect() string {
 
 func (o *NilObject) Type() ObjectType {
 	return NIL
+}
+
+func (o *ArrayObject) Inspect() string {
+	var sb strings.Builder
+	sb.WriteString("{")
+	for i, item := range o.Value {
+		sb.WriteString(item.Inspect())
+		if i < len(o.Value)-1 {
+			sb.WriteString(", ")
+		}
+	}
+	sb.WriteString("}")
+	return sb.String()
+}
+
+func (o *ArrayObject) Type() ObjectType {
+	return ARRAY
 }

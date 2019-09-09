@@ -163,7 +163,16 @@ func evalInfixString(op lexer.Token, lVal, rVal string) (Object, error) {
 	}
 
 	return nil, mkErrWrongOpForType(op, STRING)
+}
 
+func evalInfixArray(op lexer.Token, lVal, rVal []Object) (Object, error) {
+	if op.Type == lexer.PLUS {
+		return &ArrayObject{
+			append(append([]Object{}, lVal...), rVal...),
+		}, nil
+	}
+
+	return nil, mkErrWrongOpForType(op, STRING)
 }
 
 func evalInfixInt(op lexer.Token, lVal, rVal int64) (Object, error) {
@@ -211,8 +220,8 @@ func evalInfix(node parser.Node, c *Context) (Object, error) {
 		return nil, err
 	}
 
-	if left.Type() != INT && left.Type() != STRING {
-		return nil, mkErrWrongTypeStr("INT or STRING", left.Type(), iNode.Left)
+	if left.Type() != INT && left.Type() != STRING && left.Type() != ARRAY {
+		return nil, mkErrWrongTypeStr("INT or STRING or ARRAY", left.Type(), iNode.Left)
 	}
 
 	if right.Type() != right.Type() {
@@ -222,6 +231,11 @@ func evalInfix(node parser.Node, c *Context) (Object, error) {
 	if left.Type() == STRING {
 		return evalInfixString(tok, left.(*StringObject).Value, right.(*StringObject).Value)
 	}
+
+	if left.Type() == ARRAY {
+		return evalInfixArray(tok, left.(*ArrayObject).Value, right.(*ArrayObject).Value)
+	}
+
 	return evalInfixInt(tok, left.(*IntObject).Value, right.(*IntObject).Value)
 }
 
@@ -351,6 +365,44 @@ func evalFunctionCall(node parser.Node, c *Context) (Object, error) {
 	return retObj, nil
 }
 
+func objLen(obj Object) int64 {
+	if obj.Type() == STRING {
+		runes := []rune(obj.(*StringObject).Value)
+		return int64(len(runes))
+	}
+
+	if obj.Type() == ARRAY {
+		return int64(len(obj.(*ArrayObject).Value))
+	}
+	return 0
+}
+
+func objRange(obj Object, start, end int64) Object {
+	if obj.Type() == STRING {
+		runes := []rune(obj.(*StringObject).Value)
+		return &StringObject{string(runes[start:end])}
+	}
+
+	if obj.Type() == ARRAY {
+		return &ArrayObject{obj.(*ArrayObject).Value[start:end]}
+	}
+
+	return &NilObject{}
+}
+
+func objItem(obj Object, index int64) Object {
+	if obj.Type() == STRING {
+		runes := []rune(obj.(*StringObject).Value)
+		return &RuneObject{runes[index]}
+	}
+
+	if obj.Type() == ARRAY {
+		return obj.(*ArrayObject).Value[index]
+	}
+
+	return &NilObject{}
+}
+
 func evalSlice(node parser.Node, c *Context) (Object, error) {
 	sliceNode := node.(*parser.SliceNode)
 
@@ -359,12 +411,11 @@ func evalSlice(node parser.Node, c *Context) (Object, error) {
 		return nil, err
 	}
 
-	if sliceObj.Type() != STRING {
-		return nil, mkErrWrongType(STRING, sliceObj.Type(), sliceNode.Subject)
+	if sliceObj.Type() != STRING && sliceObj.Type() != ARRAY {
+		return nil, mkErrWrongTypeStr("STRING or ARRAY", sliceObj.Type(), sliceNode.Subject)
 	}
 
-	runes := []rune(sliceObj.(*StringObject).Value)
-	length := int64(len(runes))
+	length := objLen(sliceObj)
 
 	if length == 0 {
 		return nil, mkErrSliceEmpty(sliceNode.Subject)
@@ -403,10 +454,23 @@ func evalSlice(node parser.Node, c *Context) (Object, error) {
 			return nil, mkErrIndexOutOfBounds(sliceNode.End, end, start, length)
 		}
 
-		return &StringObject{string(runes[start:end])}, nil
+		return objRange(sliceObj, start, end), nil
 	}
 
-	return &RuneObject{runes[start]}, nil
+	return objItem(sliceObj, start), nil
+}
+
+func evalArray(node parser.Node, c *Context) (Object, error) {
+	arrayNode := node.(*parser.ArrayNode)
+	var objects []Object
+	for _, node := range arrayNode.Items {
+		obj, err := EvalNode(node, c)
+		if err != nil {
+			return nil, err
+		}
+		objects = append(objects, obj)
+	}
+	return &ArrayObject{objects}, nil
 }
 
 func EvalNode(node parser.Node, c *Context) (Object, error) {
@@ -443,6 +507,8 @@ func EvalNode(node parser.Node, c *Context) (Object, error) {
 		return evalFunctionCall(node, c)
 	case *parser.SliceNode:
 		return evalSlice(node, c)
+	case *parser.ArrayNode:
+		return evalArray(node, c)
 	default:
 		return nil,
 			fmt.Errorf("%s Eval error: Evaluator not implemented for %s",
