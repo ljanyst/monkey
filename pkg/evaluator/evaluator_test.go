@@ -270,6 +270,7 @@ let test4 = test1 + " " + test2 + " " + test3;
 		`
 let test1 = "zażółć gęślą jaźń";
 let test2 = test1[7:12];
+let test3 = "zażółć gęślą jaźń"[7:12];
 `,
 		`
 let test1 = "zażółć";
@@ -293,6 +294,7 @@ let test2 = test1[5];
 		map[string]Object{
 			"test1": &StringObject{"zażółć gęślą jaźń"},
 			"test2": &StringObject{"gęślą"},
+			"test3": &StringObject{"gęślą"},
 		},
 		map[string]Object{
 			"test1": &StringObject{"zażółć"},
