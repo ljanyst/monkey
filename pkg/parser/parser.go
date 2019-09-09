@@ -315,6 +315,42 @@ func (p *Parser) parseSlice(left Node) (Node, error) {
 	return &SliceNode{bracketTok, left, start, end}, nil
 }
 
+func (p *Parser) parseArray() (Node, error) {
+	arrayTok := p.lexer.ReadToken()
+	if arrayTok.Type != lexer.LBRACE {
+		return nil, mkErrWrongToken("{", arrayTok)
+	}
+
+	var items []Node
+
+	for {
+		tok := p.nextToken()
+		if tok.Type == lexer.RBRACE {
+			p.lexer.ReadToken()
+			break
+		}
+
+		item, err := p.parseExpression(LOWEST)
+		if err != nil {
+			return nil, err
+		}
+
+		items = append(items, item)
+
+		tok = p.nextToken()
+		if tok.Type == lexer.COMMA {
+			p.lexer.ReadToken()
+			continue
+		}
+
+		if tok.Type != lexer.RBRACE {
+			return nil, mkErrWrongToken(", or }", tok)
+		}
+	}
+
+	return &ArrayNode{arrayTok, items}, nil
+}
+
 func (p *Parser) getPriority(token lexer.Token) int {
 	if prio, ok := p.priorities[token.Type]; ok {
 		return prio
@@ -421,6 +457,7 @@ func NewParser(lex *lexer.Lexer) *Parser {
 	p.prefixParsers[lexer.LPAREN] = p.parseParen
 	p.prefixParsers[lexer.IF] = p.parseConditional
 	p.prefixParsers[lexer.FUNCTION] = p.parseFunction
+	p.prefixParsers[lexer.LBRACE] = p.parseArray
 
 	p.infixParsers = make(map[lexer.TokenType]infixParseFn)
 	for _, t := range []lexer.TokenType{

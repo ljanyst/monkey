@@ -89,6 +89,11 @@ type SliceNode struct {
 	End     Node
 }
 
+type ArrayNode struct {
+	token lexer.Token
+	Items []Node
+}
+
 func (n *BlockNode) String(padding string) string {
 	var sb strings.Builder
 	sb.WriteString(padding)
@@ -297,5 +302,30 @@ func (n *SliceNode) Children() []Node {
 }
 
 func (n *SliceNode) Token() lexer.Token {
+	return n.token
+}
+
+func (n *ArrayNode) String(padding string) string {
+	var sb strings.Builder
+	sb.WriteString("{\n")
+	for i, node := range n.Items {
+		sb.WriteString(padding)
+		sb.WriteString("  ")
+		sb.WriteString(node.String(padding + "  "))
+		if i < len(n.Items)-1 {
+			sb.WriteString(",")
+		}
+		sb.WriteString("\n")
+	}
+	sb.WriteString(padding)
+	sb.WriteString("}")
+	return sb.String()
+}
+
+func (n *ArrayNode) Children() []Node {
+	return n.Items
+}
+
+func (n *ArrayNode) Token() lexer.Token {
 	return n.token
 }
