@@ -354,13 +354,7 @@ func evalFunctionCall(node parser.Node, c *Context) (Object, error) {
 func evalSlice(node parser.Node, c *Context) (Object, error) {
 	sliceNode := node.(*parser.SliceNode)
 
-	tok := sliceNode.Subject.Token()
-	if tok.Type != lexer.IDENT {
-		return nil, mkErrWrongToken("identifier", tok)
-	}
-	name := sliceNode.Subject.(*parser.IdentifierNode).Value
-
-	sliceObj, err := c.Resolve(name)
+	sliceObj, err := EvalNode(sliceNode.Subject, c)
 	if err != nil {
 		return nil, err
 	}
