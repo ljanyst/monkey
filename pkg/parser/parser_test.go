@@ -892,3 +892,159 @@ func TestArrays(t *testing.T) {
 
 	parseAndCompareAst(t, input, &expected)
 }
+
+func TestLoops(t *testing.T) {
+	input := `
+for (let a = 10; a < 23; a = a + 1) {};
+for (; a < 23; a = a + 1) {};
+for (let a = 10; a < 23;) {};
+for (; a < 23;) {};
+`
+	expected := BlockNode{
+		true,
+		[]Node{
+			&LoopNode{
+				lexer.Token{lexer.FOR, "for", 2, 1, &input},
+				&StatementNode{
+					lexer.Token{lexer.LET, "let", 2, 6, &input},
+					&InfixNode{
+						lexer.Token{lexer.ASSIGN, "=", 2, 12, &input},
+						&IdentifierNode{
+							lexer.Token{lexer.IDENT, "a", 2, 10, &input},
+							"a",
+						},
+						&IntNode{
+							lexer.Token{lexer.INT, "10", 2, 14, &input},
+							10,
+						},
+					},
+				},
+				&InfixNode{
+					lexer.Token{lexer.LT, "<", 2, 20, &input},
+					&IdentifierNode{
+						lexer.Token{lexer.IDENT, "a", 2, 18, &input},
+						"a",
+					},
+					&IntNode{
+						lexer.Token{lexer.INT, "23", 2, 22, &input},
+						23,
+					},
+				},
+				&InfixNode{
+					lexer.Token{lexer.ASSIGN, "=", 2, 28, &input},
+					&IdentifierNode{
+						lexer.Token{lexer.IDENT, "a", 2, 26, &input},
+						"a",
+					},
+					&InfixNode{
+						lexer.Token{lexer.PLUS, "+", 2, 32, &input},
+						&IdentifierNode{
+							lexer.Token{lexer.IDENT, "a", 2, 30, &input},
+							"a",
+						},
+						&IntNode{
+							lexer.Token{lexer.INT, "1", 2, 34, &input},
+							1,
+						},
+					},
+				},
+				&BlockNode{
+					false,
+					[]Node{},
+				},
+			},
+			&LoopNode{
+				lexer.Token{lexer.FOR, "for", 3, 1, &input},
+				nil,
+				&InfixNode{
+					lexer.Token{lexer.LT, "<", 3, 10, &input},
+					&IdentifierNode{
+						lexer.Token{lexer.IDENT, "a", 3, 8, &input},
+						"a",
+					},
+					&IntNode{
+						lexer.Token{lexer.INT, "23", 3, 12, &input},
+						23,
+					},
+				},
+				&InfixNode{
+					lexer.Token{lexer.ASSIGN, "=", 3, 18, &input},
+					&IdentifierNode{
+						lexer.Token{lexer.IDENT, "a", 3, 16, &input},
+						"a",
+					},
+					&InfixNode{
+						lexer.Token{lexer.PLUS, "+", 3, 22, &input},
+						&IdentifierNode{
+							lexer.Token{lexer.IDENT, "a", 3, 20, &input},
+							"a",
+						},
+						&IntNode{
+							lexer.Token{lexer.INT, "1", 3, 24, &input},
+							1,
+						},
+					},
+				},
+				&BlockNode{
+					false,
+					[]Node{},
+				},
+			},
+			&LoopNode{
+				lexer.Token{lexer.FOR, "for", 4, 1, &input},
+				&StatementNode{
+					lexer.Token{lexer.LET, "let", 4, 6, &input},
+					&InfixNode{
+						lexer.Token{lexer.ASSIGN, "=", 4, 12, &input},
+						&IdentifierNode{
+							lexer.Token{lexer.IDENT, "a", 4, 10, &input},
+							"a",
+						},
+						&IntNode{
+							lexer.Token{lexer.INT, "10", 4, 14, &input},
+							10,
+						},
+					},
+				},
+				&InfixNode{
+					lexer.Token{lexer.LT, "<", 4, 20, &input},
+					&IdentifierNode{
+						lexer.Token{lexer.IDENT, "a", 4, 18, &input},
+						"a",
+					},
+					&IntNode{
+						lexer.Token{lexer.INT, "23", 4, 22, &input},
+						23,
+					},
+				},
+				nil,
+				&BlockNode{
+					false,
+					[]Node{},
+				},
+			},
+			&LoopNode{
+				lexer.Token{lexer.FOR, "for", 4, 1, &input},
+				nil,
+				&InfixNode{
+					lexer.Token{lexer.LT, "<", 4, 10, &input},
+					&IdentifierNode{
+						lexer.Token{lexer.IDENT, "a", 4, 8, &input},
+						"a",
+					},
+					&IntNode{
+						lexer.Token{lexer.INT, "23", 4, 12, &input},
+						23,
+					},
+				},
+				nil,
+				&BlockNode{
+					false,
+					[]Node{},
+				},
+			},
+		},
+	}
+
+	parseAndCompareAst(t, input, &expected)
+}
