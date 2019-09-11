@@ -214,7 +214,12 @@ func (p *Parser) parseAssign(left Node) (Node, error) {
 }
 
 func (p *Parser) parseStatement() (Node, error) {
-	tok := p.lexer.ReadToken()
+	tok := p.nextToken()
+	if tok.Type == lexer.FOR {
+		return p.parseLoop()
+	}
+
+	tok = p.lexer.ReadToken()
 
 	exp, err := p.parseExpression(LOWEST)
 	if err != nil {
@@ -351,6 +356,58 @@ func (p *Parser) parseArray() (Node, error) {
 	return &ArrayNode{arrayTok, items}, nil
 }
 
+func (p *Parser) parseLoop() (Node, error) {
+	loopTok := p.lexer.ReadToken()
+	if loopTok.Type != lexer.FOR {
+		return nil, mkErrWrongToken("for", loopTok)
+	}
+
+	tok := p.lexer.ReadToken()
+	if tok.Type != lexer.LPAREN {
+		return nil, mkErrWrongToken("{", tok)
+	}
+
+	node := LoopNode{loopTok, nil, nil, nil, nil}
+	var err error
+
+	tok = p.nextToken()
+	if tok.Type != lexer.SEMICOLON {
+		node.Initializer, err = p.parseStatement()
+		if err != nil {
+			return nil, err
+		}
+	}
+	tok = p.lexer.ReadToken()
+	if tok.Type != lexer.SEMICOLON {
+		return nil, mkErrWrongToken(";", tok)
+	}
+
+	node.Condition, err = p.parseExpression(LOWEST)
+	tok = p.lexer.ReadToken()
+	if tok.Type != lexer.SEMICOLON {
+		return nil, mkErrWrongToken(";", tok)
+	}
+
+	tok = p.nextToken()
+	if tok.Type != lexer.RPAREN {
+		node.Modifier, err = p.parseExpression(LOWEST)
+		if err != nil {
+			return nil, err
+		}
+	}
+	tok = p.lexer.ReadToken()
+	if tok.Type != lexer.RPAREN {
+		return nil, mkErrWrongToken(")", tok)
+	}
+
+	node.Body, err = p.parseBlock()
+	if err != nil {
+		return nil, err
+	}
+
+	return &node, nil
+}
+
 func (p *Parser) getPriority(token lexer.Token) int {
 	if prio, ok := p.priorities[token.Type]; ok {
 		return prio
@@ -407,7 +464,7 @@ func (p *Parser) parsePrimaryExpression() (Node, error) {
 	var node Node
 	var err error
 	switch p.nextToken().Type {
-	case lexer.LET, lexer.RETURN:
+	case lexer.LET, lexer.RETURN, lexer.FOR:
 		node, err = p.parseStatement()
 	default:
 		node, err = p.parseExpression(LOWEST)

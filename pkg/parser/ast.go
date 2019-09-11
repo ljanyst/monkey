@@ -94,6 +94,14 @@ type ArrayNode struct {
 	Items []Node
 }
 
+type LoopNode struct {
+	token       lexer.Token
+	Initializer Node
+	Condition   Node
+	Modifier    Node
+	Body        Node
+}
+
 func (n *BlockNode) String(padding string) string {
 	var sb strings.Builder
 	sb.WriteString(padding)
@@ -327,5 +335,30 @@ func (n *ArrayNode) Children() []Node {
 }
 
 func (n *ArrayNode) Token() lexer.Token {
+	return n.token
+}
+
+func (n *LoopNode) String(padding string) string {
+	var sb strings.Builder
+	sb.WriteString("for (")
+	if n.Initializer != nil {
+		sb.WriteString(n.Initializer.String(padding))
+	}
+	sb.WriteString("; ")
+	sb.WriteString(n.Condition.String(padding))
+	sb.WriteString("; ")
+	if n.Modifier != nil {
+		sb.WriteString(n.Modifier.String(padding))
+	}
+	sb.WriteString(")\n")
+	sb.WriteString(n.Body.String(padding))
+	return sb.String()
+}
+
+func (n *LoopNode) Children() []Node {
+	return []Node{n.Initializer, n.Condition, n.Modifier, n.Body}
+}
+
+func (n *LoopNode) Token() lexer.Token {
 	return n.token
 }
