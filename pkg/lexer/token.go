@@ -9,7 +9,8 @@ import (
 type TokenType int
 
 const (
-	LET TokenType = iota
+	NONE TokenType = iota
+	LET
 	IDENT
 	ASSIGN
 	INT
