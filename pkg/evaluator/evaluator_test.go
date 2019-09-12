@@ -26,7 +26,8 @@ func evaluateAndCompareResult(t *testing.T, input []string, expected []Object,
 		exp := expected[i]
 
 		if obj.Type() != exp.Type() || obj.Inspect() != exp.Inspect() {
-			t.Errorf("[test %d] Wrong result: %q. Expected %v, got %v", i, input[i], exp, obj)
+			t.Errorf("[test %d] Wrong result: %q. Expected %v, got %v", i, input[i],
+				exp.Inspect(), obj.Inspect())
 			status = false
 			continue
 		}
@@ -45,7 +46,8 @@ func evaluateAndCompareResult(t *testing.T, input []string, expected []Object,
 			}
 
 			if obj.Type() != v.Type() || obj.Inspect() != v.Inspect() {
-				t.Errorf("[test %d] Wrong object in variable %q. Expected %v, got %v", i, k, v, obj)
+				t.Errorf("[test %d] Wrong object in variable %q. Expected %v, got %v", i, k,
+					v.Inspect(), obj.Inspect())
 				status = false
 				continue
 			}
@@ -385,6 +387,66 @@ let test2 = test1[2];
 				},
 			},
 			"test2": &IntObject{5},
+		},
+	}
+
+	evaluateAndCompareResult(t, input, expected, sideEffects)
+}
+
+func TestLoops(t *testing.T) {
+	input := []string{`
+let test = {};
+for (let i = 0; i < 5; i = i + 1) {
+  test = test + {i};
+};
+`, `
+let test1 = {};
+let test2 = "gęślą";
+let i = 0;
+for (; i < 5;) {
+  test1 = test1 + {test2[i]};
+  i = i + 1;
+};
+`,
+	}
+
+	expected := []Object{
+		&ArrayObject{
+			[]Object{
+				&IntObject{0},
+				&IntObject{1},
+				&IntObject{2},
+				&IntObject{3},
+				&IntObject{4},
+			},
+		},
+		&IntObject{5},
+	}
+
+	sideEffects := []map[string]Object{
+		map[string]Object{
+			"test": &ArrayObject{
+				[]Object{
+					&IntObject{0},
+					&IntObject{1},
+					&IntObject{2},
+					&IntObject{3},
+					&IntObject{4},
+				},
+			},
+		},
+		map[string]Object{
+			"test1": &ArrayObject{
+				[]Object{
+					&RuneObject{'g'},
+					&RuneObject{'ę'},
+					&RuneObject{'ś'},
+					&RuneObject{'l'},
+					&RuneObject{'ą'},
+				},
+			},
+			"test2": &StringObject{"gęślą"},
+			"i":     &IntObject{5},
 		},
 	}
 
