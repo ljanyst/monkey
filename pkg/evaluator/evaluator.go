@@ -473,6 +473,51 @@ func evalArray(node parser.Node, c *Context) (Object, error) {
 	return &ArrayObject{objects}, nil
 }
 
+func evalLoop(node parser.Node, c *Context) (Object, error) {
+	loopNode := node.(*parser.LoopNode)
+	cLoop := c.ChildContext()
+	cInner := cLoop.ChildContext()
+
+	if loopNode.Initializer != nil {
+		_, err := EvalNode(loopNode.Initializer, cLoop)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var retObject Object
+	retObject = &NilObject{}
+
+	for {
+		condObj, err := EvalNode(loopNode.Condition, cLoop)
+		if err != nil {
+			return nil, err
+		}
+
+		if condObj.Type() != BOOL {
+			return nil, mkErrWrongType(BOOL, condObj.Type(), loopNode.Condition)
+		}
+
+		if condObj.(*BoolObject).Value == false {
+			return retObject, nil
+		}
+
+		retObject, err = EvalNode(loopNode.Body, cInner)
+		if err != nil {
+			return nil, err
+		}
+
+		if loopNode.Modifier != nil {
+			_, err := EvalNode(loopNode.Modifier, cLoop)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return retObject, nil
+}
+
 func EvalNode(node parser.Node, c *Context) (Object, error) {
 	if node == nil {
 		return &NilObject{}, nil
@@ -509,6 +554,8 @@ func EvalNode(node parser.Node, c *Context) (Object, error) {
 		return evalSlice(node, c)
 	case *parser.ArrayNode:
 		return evalArray(node, c)
+	case *parser.LoopNode:
+		return evalLoop(node, c)
 	default:
 		return nil,
 			fmt.Errorf("%s Eval error: Evaluator not implemented for %s",
