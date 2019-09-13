@@ -180,6 +180,17 @@ func evalInfixArray(op lexer.Token, lVal, rVal []Object) (Object, error) {
 	return nil, mkErrWrongOpForType(op, STRING)
 }
 
+func evalInfixBool(op lexer.Token, lVal, rVal bool) (Object, error) {
+	switch op.Type {
+	case lexer.AND:
+		return &BoolObject{lVal && rVal}, nil
+	case lexer.OR:
+		return &BoolObject{lVal || rVal}, nil
+	default:
+		return nil, mkErrWrongOpForType(op, BOOL)
+	}
+}
+
 func evalInfixInt(op lexer.Token, lVal, rVal int64) (Object, error) {
 	switch op.Type {
 	case lexer.PLUS:
@@ -225,23 +236,27 @@ func evalInfix(node parser.Node, c *Context) (Object, error) {
 		return nil, err
 	}
 
-	if left.Type() != INT && left.Type() != STRING && left.Type() != ARRAY {
-		return nil, mkErrWrongTypeStr("INT or STRING or ARRAY", left.Type(), iNode.Left)
+	if left.Type() != INT && left.Type() != STRING && left.Type() != ARRAY && left.Type() != BOOL {
+		return nil, mkErrWrongTypeStr("INT or STRING or ARRAY or BOOL", left.Type(), iNode.Left)
 	}
 
 	if right.Type() != right.Type() {
 		return nil, mkErrWrongType(left.Type(), right.Type(), iNode.Right)
 	}
 
-	if left.Type() == STRING {
+	switch left.Type() {
+	case STRING:
 		return evalInfixString(tok, left.(*StringObject).Value, right.(*StringObject).Value)
-	}
-
-	if left.Type() == ARRAY {
+	case ARRAY:
 		return evalInfixArray(tok, left.(*ArrayObject).Value, right.(*ArrayObject).Value)
+	case INT:
+		return evalInfixInt(tok, left.(*IntObject).Value, right.(*IntObject).Value)
+	case BOOL:
+		return evalInfixBool(tok, left.(*BoolObject).Value, right.(*BoolObject).Value)
+	default:
+		return nil, fmt.Errorf("%s Eval error: No infix eval function for type %s",
+			tok.Location(), left.Type())
 	}
-
-	return evalInfixInt(tok, left.(*IntObject).Value, right.(*IntObject).Value)
 }
 
 func evalLet(node parser.Node, c *Context) (Object, error) {
