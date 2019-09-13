@@ -144,6 +144,7 @@ func TestInfixPriority(t *testing.T) {
 -12 * 7 == 12 + -8;
 -12 * (7 + 12) * -8;
 -(12 + 4);
+-12 * 7 == 12 + -8 && -32 > 3;
 `
 	expected := BlockNode{
 		true,
@@ -367,6 +368,54 @@ func TestInfixPriority(t *testing.T) {
 					&IntNode{
 						lexer.Token{lexer.INT, "4", 10, 8, &input},
 						4,
+					},
+				},
+			},
+			&InfixNode{
+				lexer.Token{lexer.AND, "&&", 11, 20, &input},
+				&InfixNode{
+					lexer.Token{lexer.EQ, "==", 11, 9, &input},
+					&InfixNode{
+						lexer.Token{lexer.ASTERISK, "*", 11, 5, &input},
+						&PrefixNode{
+							lexer.Token{lexer.MINUS, "-", 11, 1, &input},
+							&IntNode{
+								lexer.Token{lexer.INT, "12", 11, 2, &input},
+								12,
+							},
+						},
+						&IntNode{
+							lexer.Token{lexer.INT, "7", 11, 9, &input},
+							7,
+						},
+					},
+					&InfixNode{
+						lexer.Token{lexer.PLUS, "+", 11, 15, &input},
+						&IntNode{
+							lexer.Token{lexer.INT, "12", 11, 12, &input},
+							12,
+						},
+						&PrefixNode{
+							lexer.Token{lexer.MINUS, "-", 11, 17, &input},
+							&IntNode{
+								lexer.Token{lexer.INT, "8", 11, 18, &input},
+								8,
+							},
+						},
+					},
+				},
+				&InfixNode{
+					lexer.Token{lexer.GT, ">", 11, 27, &input},
+					&PrefixNode{
+						lexer.Token{lexer.MINUS, "-", 11, 23, &input},
+						&IntNode{
+							lexer.Token{lexer.INT, "32", 11, 24, &input},
+							32,
+						},
+					},
+					&IntNode{
+						lexer.Token{lexer.INT, "3", 11, 29, &input},
+						3,
 					},
 				},
 			},
