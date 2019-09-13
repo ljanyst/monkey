@@ -10,6 +10,7 @@ import (
 const (
 	LOWEST = iota
 	ASSIGN
+	LOGIC
 	COMPARISON
 	SUM
 	PRODUCT
@@ -523,7 +524,8 @@ func NewParser(lex *lexer.Lexer) *Parser {
 	p.infixParsers = make(map[lexer.TokenType]infixParseFn)
 	for _, t := range []lexer.TokenType{
 		lexer.MINUS, lexer.PLUS, lexer.ASTERISK, lexer.SLASH, lexer.EQ,
-		lexer.NOT_EQ, lexer.LT, lexer.LE, lexer.GT, lexer.GE,
+		lexer.NOT_EQ, lexer.LT, lexer.LE, lexer.GT, lexer.GE, lexer.AND,
+		lexer.OR,
 	} {
 		p.infixParsers[t] = p.parseInfix
 	}
@@ -545,5 +547,7 @@ func NewParser(lex *lexer.Lexer) *Parser {
 	p.priorities[lexer.ASSIGN] = ASSIGN
 	p.priorities[lexer.LPAREN] = CALL
 	p.priorities[lexer.LBRACKET] = CALL
+	p.priorities[lexer.AND] = LOGIC
+	p.priorities[lexer.OR] = LOGIC
 	return p
 }
