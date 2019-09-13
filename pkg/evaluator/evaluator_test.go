@@ -407,6 +407,30 @@ for (; i < 5;) {
   test1 = test1 + {test2[i]};
   i = i + 1;
 };
+`, `
+let test = {};
+for (let i = 0; i < 5; i = i + 1) {
+  if (i == 2) {
+    return 71;
+  };
+  test = test + {i};
+};
+`, `
+let test = {};
+for (let i = 0; i < 5; i = i + 1) {
+  if (i == 2) {
+    break;
+  };
+  test = test + {i};
+};
+`, `
+let test = {};
+for (let i = 0; i < 5; i = i + 1) {
+  if (i == 2) {
+    continue;
+  };
+  test = test + {i};
+};
 `,
 	}
 
@@ -421,6 +445,16 @@ for (; i < 5;) {
 			},
 		},
 		&IntObject{5},
+		&IntObject{71},
+		&NilObject{},
+		&ArrayObject{
+			[]Object{
+				&IntObject{0},
+				&IntObject{1},
+				&IntObject{3},
+				&IntObject{4},
+			},
+		},
 	}
 
 	sideEffects := []map[string]Object{
@@ -447,6 +481,32 @@ for (; i < 5;) {
 			},
 			"test2": &StringObject{"gęślą"},
 			"i":     &IntObject{5},
+		},
+		map[string]Object{
+			"test": &ArrayObject{
+				[]Object{
+					&IntObject{0},
+					&IntObject{1},
+				},
+			},
+		},
+		map[string]Object{
+			"test": &ArrayObject{
+				[]Object{
+					&IntObject{0},
+					&IntObject{1},
+				},
+			},
+		},
+		map[string]Object{
+			"test": &ArrayObject{
+				[]Object{
+					&IntObject{0},
+					&IntObject{1},
+					&IntObject{3},
+					&IntObject{4},
+				},
+			},
 		},
 	}
 
