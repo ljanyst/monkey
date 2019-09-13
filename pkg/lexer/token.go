@@ -47,6 +47,8 @@ const (
 	RBRACKET
 	COLON
 	FOR
+	BREAK
+	CONTINUE
 )
 
 type Token struct {
@@ -62,15 +64,17 @@ func (t Token) Location() string {
 }
 
 var keywords = map[string]TokenType{
-	"let":    LET,
-	"fn":     FUNCTION,
-	"if":     IF,
-	"else":   ELSE,
-	"return": RETURN,
-	"true":   TRUE,
-	"false":  FALSE,
-	"nil":    NIL,
-	"for":    FOR,
+	"let":      LET,
+	"fn":       FUNCTION,
+	"if":       IF,
+	"else":     ELSE,
+	"return":   RETURN,
+	"true":     TRUE,
+	"false":    FALSE,
+	"nil":      NIL,
+	"for":      FOR,
+	"break":    BREAK,
+	"continue": CONTINUE,
 }
 
 func LookupKeyword(ident string) TokenType {
