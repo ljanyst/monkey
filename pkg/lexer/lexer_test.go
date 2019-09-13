@@ -40,6 +40,8 @@ let żółwik = "zażółć gęślą jaźń";
 nil;
 'ć';
 for[a:b];
+break;
+continue;
 `
 
 	tests := []Token{
@@ -140,6 +142,10 @@ for[a:b];
 		{COLON, ":", 0, 0, nil},
 		{IDENT, "b", 0, 0, nil},
 		{RBRACKET, "]", 0, 0, nil},
+		{SEMICOLON, ";", 0, 0, nil},
+		{BREAK, "break", 0, 0, nil},
+		{SEMICOLON, ";", 0, 0, nil},
+		{CONTINUE, "continue", 0, 0, nil},
 		{SEMICOLON, ";", 0, 0, nil},
 		{EOF, "", 0, 0, nil},
 	}
