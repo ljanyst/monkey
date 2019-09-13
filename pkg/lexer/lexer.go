@@ -179,6 +179,16 @@ func (l *Lexer) nextToken() Token {
 			return l.mkToken(RBRACKET)
 		case ':':
 			return l.mkToken(COLON)
+		case '&':
+			if l.maybeConsume('&') {
+				return Token{AND, "&&", l.line, l.column - 1, &l.fileName}
+			}
+			return l.mkToken(INVALID)
+		case '|':
+			if l.maybeConsume('|') {
+				return Token{OR, "||", l.line, l.column - 1, &l.fileName}
+			}
+			return l.mkToken(INVALID)
 		default:
 			if unicode.IsLetter(l.curRune) {
 				ident := l.readIdentifier()

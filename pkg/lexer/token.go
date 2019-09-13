@@ -49,6 +49,8 @@ const (
 	FOR
 	BREAK
 	CONTINUE
+	AND
+	OR
 )
 
 type Token struct {
