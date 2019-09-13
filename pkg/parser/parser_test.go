@@ -899,6 +899,10 @@ for (let a = 10; a < 23; a = a + 1) {};
 for (; a < 23; a = a + 1) {};
 for (let a = 10; a < 23;) {};
 for (; a < 23;) {};
+for (; a < 23;) {
+  break;
+  continue;
+};
 `
 	expected := BlockNode{
 		true,
@@ -1024,16 +1028,16 @@ for (; a < 23;) {};
 				},
 			},
 			&LoopNode{
-				lexer.Token{lexer.FOR, "for", 4, 1, &input},
+				lexer.Token{lexer.FOR, "for", 5, 1, &input},
 				nil,
 				&InfixNode{
-					lexer.Token{lexer.LT, "<", 4, 10, &input},
+					lexer.Token{lexer.LT, "<", 5, 10, &input},
 					&IdentifierNode{
-						lexer.Token{lexer.IDENT, "a", 4, 8, &input},
+						lexer.Token{lexer.IDENT, "a", 5, 8, &input},
 						"a",
 					},
 					&IntNode{
-						lexer.Token{lexer.INT, "23", 4, 12, &input},
+						lexer.Token{lexer.INT, "23", 5, 12, &input},
 						23,
 					},
 				},
@@ -1041,6 +1045,35 @@ for (; a < 23;) {};
 				&BlockNode{
 					false,
 					[]Node{},
+				},
+			},
+			&LoopNode{
+				lexer.Token{lexer.FOR, "for", 6, 1, &input},
+				nil,
+				&InfixNode{
+					lexer.Token{lexer.LT, "<", 6, 10, &input},
+					&IdentifierNode{
+						lexer.Token{lexer.IDENT, "a", 6, 8, &input},
+						"a",
+					},
+					&IntNode{
+						lexer.Token{lexer.INT, "23", 6, 12, &input},
+						23,
+					},
+				},
+				nil,
+				&BlockNode{
+					false,
+					[]Node{
+						&StatementNode{
+							lexer.Token{lexer.BREAK, "break", 7, 3, &input},
+							nil,
+						},
+						&StatementNode{
+							lexer.Token{lexer.CONTINUE, "continue", 8, 3, &input},
+							nil,
+						},
+					},
 				},
 			},
 		},
