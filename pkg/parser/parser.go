@@ -221,6 +221,10 @@ func (p *Parser) parseStatement() (Node, error) {
 
 	tok = p.lexer.ReadToken()
 
+	if tok.Type == lexer.BREAK || tok.Type == lexer.CONTINUE {
+		return &StatementNode{tok, nil}, nil
+	}
+
 	exp, err := p.parseExpression(LOWEST)
 	if err != nil {
 		return nil, err
@@ -464,7 +468,7 @@ func (p *Parser) parsePrimaryExpression() (Node, error) {
 	var node Node
 	var err error
 	switch p.nextToken().Type {
-	case lexer.LET, lexer.RETURN, lexer.FOR:
+	case lexer.LET, lexer.RETURN, lexer.FOR, lexer.BREAK, lexer.CONTINUE:
 		node, err = p.parseStatement()
 	default:
 		node, err = p.parseExpression(LOWEST)
