@@ -73,13 +73,18 @@ func evalBlock(node parser.Node, c *Context) (Object, error) {
 			return nil, err
 		}
 
-		if obj.Type() == RETURN {
+		if obj.Type() == EXIT {
 			break
 		}
 	}
 
-	if implicit && obj.Type() == RETURN {
-		return obj.(*ReturnObject).Value, nil
+	if implicit && obj.Type() == EXIT {
+		exitObj := obj.(*ExitObject)
+		if exitObj.Kind == RETURN {
+			return exitObj.Value, nil
+		}
+		return nil, fmt.Errorf("%s Eval error: %s exit statement outside of a loop context",
+			node.Token().Location(), exitObj.Kind)
 	}
 
 	return obj, nil
@@ -272,15 +277,20 @@ func evalReturn(node parser.Node, c *Context) (Object, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ReturnObject{obj}, nil
+	return &ExitObject{RETURN, obj}, nil
 }
 
 func evalStatement(node parser.Node, c *Context) (Object, error) {
 	tok := node.Token()
-	if tok.Type == lexer.LET {
+	switch tok.Type {
+	case lexer.LET:
 		return evalLet(node, c)
-	} else if node.Token().Type == lexer.RETURN {
+	case lexer.RETURN:
 		return evalReturn(node, c)
+	case lexer.BREAK:
+		return &ExitObject{BREAK, nil}, nil
+	case lexer.CONTINUE:
+		return &ExitObject{CONTINUE, nil}, nil
 	}
 	return nil, fmt.Errorf("%s Eval error: Unrecognized statement: %s", tok.Location(), tok.Literal)
 }
@@ -359,8 +369,13 @@ func evalFunctionCall(node parser.Node, c *Context) (Object, error) {
 		return nil, err
 	}
 
-	if retObj.Type() == RETURN {
-		return retObj.(*ReturnObject).Value, nil
+	if retObj.Type() == EXIT {
+		exitObj := retObj.(*ExitObject)
+		if exitObj.Kind == RETURN {
+			return exitObj.Value, nil
+		}
+		return nil, fmt.Errorf("%s Eval error: %s exit statement outside of a loop context",
+			f.Value.Token().Location(), exitObj.Kind)
 	}
 	return retObj, nil
 }
@@ -505,6 +520,17 @@ func evalLoop(node parser.Node, c *Context) (Object, error) {
 		retObject, err = EvalNode(loopNode.Body, cInner)
 		if err != nil {
 			return nil, err
+		}
+
+		if retObject.Type() == EXIT {
+			obj := retObject.(*ExitObject)
+			if obj.Kind == CONTINUE || obj.Kind == BREAK {
+				retObject = &NilObject{}
+			}
+
+			if obj.Kind == BREAK || obj.Kind == RETURN {
+				break
+			}
 		}
 
 		if loopNode.Modifier != nil {

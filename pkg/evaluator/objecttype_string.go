@@ -11,16 +11,16 @@ func _() {
 	_ = x[INT-0]
 	_ = x[BOOL-1]
 	_ = x[STRING-2]
-	_ = x[RETURN-3]
+	_ = x[EXIT-3]
 	_ = x[FUNCTION-4]
 	_ = x[NIL-5]
 	_ = x[RUNE-6]
 	_ = x[ARRAY-7]
 }
 
-const _ObjectType_name = "INTBOOLSTRINGRETURNFUNCTIONNILRUNEARRAY"
+const _ObjectType_name = "INTBOOLSTRINGEXITFUNCTIONNILRUNEARRAY"
 
-var _ObjectType_index = [...]uint8{0, 3, 7, 13, 19, 27, 30, 34, 39}
+var _ObjectType_index = [...]uint8{0, 3, 7, 13, 17, 25, 28, 32, 37}
 
 func (i ObjectType) String() string {
 	if i < 0 || i >= ObjectType(len(_ObjectType_index)-1) {

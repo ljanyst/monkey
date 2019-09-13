@@ -8,6 +8,7 @@ import (
 )
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type ObjectType object.go
+//go:generate go run golang.org/x/tools/cmd/stringer -type ExitType object.go
 
 type ObjectType int
 
@@ -15,7 +16,7 @@ const (
 	INT ObjectType = iota
 	BOOL
 	STRING
-	RETURN
+	EXIT
 	FUNCTION
 	NIL
 	RUNE
@@ -43,7 +44,16 @@ type RuneObject struct {
 	Value rune
 }
 
-type ReturnObject struct {
+type ExitType int
+
+const (
+	RETURN ExitType = iota
+	BREAK
+	CONTINUE
+)
+
+type ExitObject struct {
+	Kind  ExitType
 	Value Object
 }
 
@@ -95,12 +105,12 @@ func (o *RuneObject) Type() ObjectType {
 	return RUNE
 }
 
-func (o *ReturnObject) Inspect() string {
+func (o *ExitObject) Inspect() string {
 	return fmt.Sprintf("return %q", o.Value.Inspect())
 }
 
-func (o *ReturnObject) Type() ObjectType {
-	return RETURN
+func (o *ExitObject) Type() ObjectType {
+	return EXIT
 }
 
 func (o *FunctionObject) Inspect() string {
