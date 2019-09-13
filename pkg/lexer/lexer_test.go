@@ -42,6 +42,7 @@ nil;
 for[a:b];
 break;
 continue;
+true || false && true;
 `
 
 	tests := []Token{
@@ -146,6 +147,12 @@ continue;
 		{BREAK, "break", 0, 0, nil},
 		{SEMICOLON, ";", 0, 0, nil},
 		{CONTINUE, "continue", 0, 0, nil},
+		{SEMICOLON, ";", 0, 0, nil},
+		{TRUE, "true", 0, 0, nil},
+		{OR, "||", 0, 0, nil},
+		{FALSE, "false", 0, 0, nil},
+		{AND, "&&", 0, 0, nil},
+		{TRUE, "true", 0, 0, nil},
 		{SEMICOLON, ";", 0, 0, nil},
 		{EOF, "", 0, 0, nil},
 	}
