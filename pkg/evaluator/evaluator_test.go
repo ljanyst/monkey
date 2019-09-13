@@ -512,3 +512,42 @@ for (let i = 0; i < 5; i = i + 1) {
 
 	evaluateAndCompareResult(t, input, expected, sideEffects)
 }
+
+func TestLogic(t *testing.T) {
+	input := []string{`
+let test = {};
+for (let i = 0; i < 6 || i > 6; i = i + 1) {
+  if (i >= 2 && i <= 3) {
+    continue;
+  };
+  test = test + {i};
+};
+`,
+	}
+
+	expected := []Object{
+		&ArrayObject{
+			[]Object{
+				&IntObject{0},
+				&IntObject{1},
+				&IntObject{4},
+				&IntObject{5},
+			},
+		},
+	}
+
+	sideEffects := []map[string]Object{
+		map[string]Object{
+			"test": &ArrayObject{
+				[]Object{
+					&IntObject{0},
+					&IntObject{1},
+					&IntObject{4},
+					&IntObject{5},
+				},
+			},
+		},
+	}
+
+	evaluateAndCompareResult(t, input, expected, sideEffects)
+}
