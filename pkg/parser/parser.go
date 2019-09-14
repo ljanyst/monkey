@@ -200,8 +200,8 @@ func (p *Parser) parseConditional() (Node, error) {
 }
 
 func (p *Parser) parseAssign(left Node) (Node, error) {
-	if left.Token().Type != lexer.IDENT {
-		return nil, mkErrWrongToken("identifier", left.Token())
+	if left.Token().Type != lexer.IDENT && left.Token().Type != lexer.LBRACKET {
+		return nil, mkErrWrongToken("identifier or slice", left.Token())
 	}
 
 	tok := p.lexer.ReadToken()
