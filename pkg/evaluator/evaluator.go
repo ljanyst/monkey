@@ -95,7 +95,7 @@ func evalInt(node parser.Node, c *Context) (Object, error) {
 }
 
 func evalString(node parser.Node, c *Context) (Object, error) {
-	return &StringObject{node.(*parser.StringNode).Value}, nil
+	return &StringObject{[]rune(node.(*parser.StringNode).Value)}, nil
 }
 
 func evalBool(node parser.Node, c *Context) (Object, error) {
@@ -205,9 +205,7 @@ func assignSlice(node *parser.InfixNode, c *Context) (Object, error) {
 			return nil, mkErrWrongType(RUNE, rhs.Type(), node.Right)
 		}
 		str := subject.(*StringObject)
-		runes := []rune(str.Value)
-		runes[index] = rhs.(*RuneObject).Value
-		str.Value = string(runes)
+		str.Value[index] = rhs.(*RuneObject).Value
 	case ARRAY:
 		array := subject.(*ArrayObject)
 		array.Value[index] = rhs
@@ -226,9 +224,9 @@ func evalAssign(node parser.Node, c *Context) (Object, error) {
 	return assignSlice(assignNode, c)
 }
 
-func evalInfixString(op lexer.Token, lVal, rVal string) (Object, error) {
+func evalInfixString(op lexer.Token, lVal, rVal []rune) (Object, error) {
 	if op.Type == lexer.PLUS {
-		return &StringObject{lVal + rVal}, nil
+		return &StringObject{append(append([]rune{}, lVal...), rVal...)}, nil
 	}
 
 	return nil, mkErrWrongOpForType(op, STRING)
@@ -467,8 +465,7 @@ func objLen(obj Object) int64 {
 
 func objRange(obj Object, start, end int64) Object {
 	if obj.Type() == STRING {
-		runes := []rune(obj.(*StringObject).Value)
-		return &StringObject{string(runes[start:end])}
+		return &StringObject{obj.(*StringObject).Value[start:end]}
 	}
 
 	if obj.Type() == ARRAY {

@@ -37,7 +37,7 @@ type BoolObject struct {
 }
 
 type StringObject struct {
-	Value string
+	Value []rune
 }
 
 type RuneObject struct {
@@ -90,7 +90,7 @@ func (o *BoolObject) Type() ObjectType {
 }
 
 func (o *StringObject) Inspect() string {
-	return fmt.Sprintf("%q", o.Value)
+	return fmt.Sprintf("%q", string(o.Value))
 }
 
 func (o *StringObject) Type() ObjectType {
