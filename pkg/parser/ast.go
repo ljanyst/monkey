@@ -77,9 +77,9 @@ type FunctionNode struct {
 }
 
 type FunctionCallNode struct {
-	token lexer.Token
-	Name  Node
-	Args  []Node
+	token    lexer.Token
+	Function Node
+	Args     []Node
 }
 
 type SliceNode struct {
@@ -232,6 +232,9 @@ func (n *ConditionalNode) Token() lexer.Token {
 }
 
 func (n *StatementNode) String(padding string) string {
+	if n.expression == nil {
+		return n.token.Literal
+	}
 	return fmt.Sprintf("%s %s", n.token.Literal, n.expression.String(padding))
 }
 
@@ -267,7 +270,7 @@ func (n *FunctionNode) Token() lexer.Token {
 
 func (n *FunctionCallNode) String(padding string) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("%s(", n.Name.String(padding)))
+	sb.WriteString(fmt.Sprintf("%s(", n.Function.String(padding)))
 	for i, arg := range n.Args {
 		sb.WriteString(arg.String(padding))
 		if i < len(n.Args)-1 {
@@ -279,7 +282,7 @@ func (n *FunctionCallNode) String(padding string) string {
 }
 
 func (n *FunctionCallNode) Children() []Node {
-	return append([]Node{n.Name}, n.Args...)
+	return append([]Node{n.Function}, n.Args...)
 }
 
 func (n *FunctionCallNode) Token() lexer.Token {
