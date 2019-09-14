@@ -212,9 +212,7 @@ let compositor = fn(f1, f2) {
   return fn(x) { return f1(f2(x)); };
 };
 
-let func = compositor(adder(5), multiplier(2));
-
-let result = func(3);
+let result = compositor(adder(5), multiplier(2))(3);
 
 result;
 `, `
@@ -250,7 +248,6 @@ let x2 = funcOuter(1);
 			"adder":      &FunctionObject{[]string{"x"}, nil, nil},
 			"multiplier": &FunctionObject{[]string{"x"}, nil, nil},
 			"compositor": &FunctionObject{[]string{"f1", "f2"}, nil, nil},
-			"func":       &FunctionObject{[]string{"x"}, nil, nil},
 			"result":     &IntObject{11},
 		},
 		map[string]Object{
