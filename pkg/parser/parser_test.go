@@ -802,6 +802,7 @@ test[1];
 test[1+6];
 test[0:4];
 test[0+1:4-2];
+func()[1] = 'ć';
 `
 	expected := BlockNode{
 		true,
@@ -879,6 +880,29 @@ test[0+1:4-2];
 						lexer.Token{lexer.INT, "2", 4, 12, &input},
 						2,
 					},
+				},
+			},
+			&InfixNode{
+				lexer.Token{lexer.ASSIGN, "=", 5, 11, &input},
+				&SliceNode{
+					lexer.Token{lexer.LBRACKET, "[", 5, 7, &input},
+					&FunctionCallNode{
+						lexer.Token{lexer.LPAREN, "(", 5, 5, &input},
+						&IdentifierNode{
+							lexer.Token{lexer.IDENT, "func", 5, 1, &input},
+							"func",
+						},
+						[]Node{},
+					},
+					&IntNode{
+						lexer.Token{lexer.INT, "1", 5, 8, &input},
+						1,
+					},
+					nil,
+				},
+				&RuneNode{
+					lexer.Token{lexer.RUNE, "ć", 5, 13, &input},
+					'ć',
 				},
 			},
 		},
