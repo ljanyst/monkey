@@ -123,43 +123,107 @@ func evalPrefix(node parser.Node, c *Context) (Object, error) {
 		return nil, err
 	}
 
-	if node.Token().Type == lexer.BANG {
+	tok := node.Token()
+
+	if tok.Type == lexer.BANG {
 		if obj.Type() != BOOL {
 			return nil, mkErrWrongType(BOOL, obj.Type(), exp)
 		}
 		return &BoolObject{!obj.(*BoolObject).Value}, nil
 	}
 
-	if node.Token().Type == lexer.MINUS {
+	if tok.Type == lexer.MINUS {
 		if obj.Type() != INT {
 			return nil, mkErrWrongType(INT, obj.Type(), exp)
 		}
 		return &IntObject{-obj.(*IntObject).Value}, nil
 	}
 
-	return nil, fmt.Errorf("Unrecognized token for prefix expression: %s", node.Token().Literal)
+	return nil, fmt.Errorf("%s Unrecognized token for prefix expression: %s", tok.Location(), tok.Literal)
 }
 
-func evalAssign(node parser.Node, c *Context) (Object, error) {
-	assignNode := node.(*parser.InfixNode)
-	tok := assignNode.Left.Token()
-	if tok.Type != lexer.IDENT {
-		return nil, mkErrWrongToken("identifier", tok)
-	}
+func assignIdent(node *parser.InfixNode, c *Context) (Object, error) {
+	identNode := node.Left.(*parser.IdentifierNode)
 
-	identNode := assignNode.Left.(*parser.IdentifierNode)
-
-	obj, err := EvalNode(assignNode.Right, c)
+	obj, err := EvalNode(node.Right, c)
 	if err != nil {
 		return nil, err
 	}
 
 	err = c.Set(identNode.Value, obj)
 	if err != nil {
-		return nil, fmt.Errorf("%s Eval error: %s", tok.Location(), err)
+		return nil, fmt.Errorf("%s Eval error: %s", node.Token().Location(), err)
 	}
 
 	return obj, nil
+}
+
+func assignSlice(node *parser.InfixNode, c *Context) (Object, error) {
+	sliceTok := node.Left.Token()
+	slice, ok := node.Left.(*parser.SliceNode)
+	if !ok {
+		return nil, fmt.Errorf("%s Left hand side is not a slice: %s", sliceTok.Location(),
+			node.Left.String(""))
+	}
+
+	if slice.End != nil {
+		return nil, fmt.Errorf("%s Can only assign to a single element", sliceTok.Location())
+	}
+
+	subject, err := EvalNode(slice.Subject, c)
+	if err != nil {
+		return nil, err
+	}
+
+	indexObj, err := EvalNode(slice.Start, c)
+	if err != nil {
+		return nil, err
+	}
+
+	if subject.Type() != STRING && subject.Type() != ARRAY {
+		return nil, mkErrWrongTypeStr("STRING or ARRAY", subject.Type(), slice.Subject)
+	}
+
+	if indexObj.Type() != INT {
+		return nil, mkErrWrongType(INT, indexObj.Type(), slice.Start)
+	}
+
+	index := indexObj.(*IntObject).Value
+	length := objLen(subject)
+	if index < 0 || index >= length {
+		return nil, mkErrIndexOutOfBounds(slice.Start, index, 0, length-1)
+	}
+
+	rhs, err := EvalNode(node.Right, c)
+	if err != nil {
+		return nil, err
+	}
+
+	switch subject.Type() {
+	case STRING:
+		if rhs.Type() != RUNE {
+			return nil, mkErrWrongType(RUNE, rhs.Type(), node.Right)
+		}
+		str := subject.(*StringObject)
+		runes := []rune(str.Value)
+		runes[index] = rhs.(*RuneObject).Value
+		str.Value = string(runes)
+	case ARRAY:
+		array := subject.(*ArrayObject)
+		array.Value[index] = rhs
+	}
+
+	return rhs, nil
+}
+
+func evalAssign(node parser.Node, c *Context) (Object, error) {
+	assignNode := node.(*parser.InfixNode)
+
+	tok := assignNode.Left.Token()
+	if tok.Type == lexer.IDENT {
+		return assignIdent(assignNode, c)
+	}
+	return assignSlice(assignNode, c)
 }
 
 func evalInfixString(op lexer.Token, lVal, rVal string) (Object, error) {
