@@ -71,7 +71,7 @@ func TestLiteralsAndIdentifiers(t *testing.T) {
 
 	expected := []Object{
 		&IntObject{10},
-		&StringObject{"zażółć gęślą jaźń"},
+		&StringObject{[]rune("zażółć gęślą jaźń")},
 		&BoolObject{true},
 		&BoolObject{false},
 		&BoolObject{false},
@@ -278,25 +278,25 @@ let test2 = test1[5];
 	}
 
 	expected := []Object{
-		&StringObject{"zażółć gęślą jaźń"},
-		&StringObject{"gęślą"},
+		&StringObject{[]rune("zażółć gęślą jaźń")},
+		&StringObject{[]rune("gęślą")},
 		&RuneObject{'ć'},
 	}
 
 	sideEffects := []map[string]Object{
 		map[string]Object{
-			"test1": &StringObject{"zażółć"},
-			"test2": &StringObject{"gęślą"},
-			"test3": &StringObject{"jaźń"},
-			"test4": &StringObject{"zażółć gęślą jaźń"},
+			"test1": &StringObject{[]rune("zażółć")},
+			"test2": &StringObject{[]rune("gęślą")},
+			"test3": &StringObject{[]rune("jaźń")},
+			"test4": &StringObject{[]rune("zażółć gęślą jaźń")},
 		},
 		map[string]Object{
-			"test1": &StringObject{"zażółć gęślą jaźń"},
-			"test2": &StringObject{"gęślą"},
-			"test3": &StringObject{"gęślą"},
+			"test1": &StringObject{[]rune("zażółć gęślą jaźń")},
+			"test2": &StringObject{[]rune("gęślą")},
+			"test3": &StringObject{[]rune("gęślą")},
 		},
 		map[string]Object{
-			"test1": &StringObject{"zażółć"},
+			"test1": &StringObject{[]rune("zażółć")},
 			"test2": &RuneObject{'ć'},
 		},
 	}
@@ -325,9 +325,9 @@ let test2 = test1[2];
 	expected := []Object{
 		&ArrayObject{
 			[]Object{
-				&StringObject{"zażółć"},
-				&StringObject{"gęślą"},
-				&StringObject{"jaźń"},
+				&StringObject{[]rune("zażółć")},
+				&StringObject{[]rune("gęślą")},
+				&StringObject{[]rune("jaźń")},
 			},
 		},
 		&ArrayObject{
@@ -341,21 +341,21 @@ let test2 = test1[2];
 
 	sideEffects := []map[string]Object{
 		map[string]Object{
-			"test1": &ArrayObject{[]Object{&StringObject{"zażółć"}}},
-			"test2": &ArrayObject{[]Object{&StringObject{"gęślą"}}},
-			"test3": &ArrayObject{[]Object{&StringObject{"jaźń"}}},
+			"test1": &ArrayObject{[]Object{&StringObject{[]rune("zażółć")}}},
+			"test2": &ArrayObject{[]Object{&StringObject{[]rune("gęślą")}}},
+			"test3": &ArrayObject{[]Object{&StringObject{[]rune("jaźń")}}},
 			"test4": &ArrayObject{
 				[]Object{
-					&StringObject{"zażółć"},
-					&StringObject{"gęślą"},
-					&StringObject{"jaźń"},
+					&StringObject{[]rune("zażółć")},
+					&StringObject{[]rune("gęślą")},
+					&StringObject{[]rune("jaźń")},
 				},
 			},
 		},
 		map[string]Object{
 			"test1": &ArrayObject{
 				[]Object{
-					&StringObject{"zażółć"},
+					&StringObject{[]rune("zażółć")},
 					&IntObject{12},
 					&IntObject{5},
 					&RuneObject{'ł'},
@@ -377,7 +377,7 @@ let test2 = test1[2];
 		map[string]Object{
 			"test1": &ArrayObject{
 				[]Object{
-					&StringObject{"zażółć"},
+					&StringObject{[]rune("zażółć")},
 					&IntObject{12},
 					&IntObject{5},
 					&RuneObject{'ł'},
@@ -476,7 +476,7 @@ for (let i = 0; i < 5; i = i + 1) {
 					&RuneObject{'ą'},
 				},
 			},
-			"test2": &StringObject{"gęślą"},
+			"test2": &StringObject{[]rune("gęślą")},
 			"i":     &IntObject{5},
 		},
 		map[string]Object{
@@ -565,7 +565,7 @@ func()[1] = 'ć';
 
 	sideEffects := []map[string]Object{
 		map[string]Object{
-			"test": &StringObject{"zćżółć"},
+			"test": &StringObject{[]rune("zćżółć")},
 			"func": &FunctionObject{[]string{}, nil, nil},
 		},
 	}
