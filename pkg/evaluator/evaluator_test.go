@@ -548,3 +548,27 @@ for (let i = 0; i < 6 || i > 6; i = i + 1) {
 
 	evaluateAndCompareResult(t, input, expected, sideEffects)
 }
+
+func TestAssignSlice(t *testing.T) {
+	input := []string{`
+let test = "zażółć";
+let func = fn() {
+  return test;
+};
+func()[1] = 'ć';
+`,
+	}
+
+	expected := []Object{
+		&RuneObject{'ć'},
+	}
+
+	sideEffects := []map[string]Object{
+		map[string]Object{
+			"test": &StringObject{"zćżółć"},
+			"func": &FunctionObject{[]string{}, nil, nil},
+		},
+	}
+
+	evaluateAndCompareResult(t, input, expected, sideEffects)
+}
