@@ -453,8 +453,7 @@ func evalFunctionCall(node parser.Node, c *Context) (Object, error) {
 
 func objLen(obj Object) int64 {
 	if obj.Type() == STRING {
-		runes := []rune(obj.(*StringObject).Value)
-		return int64(len(runes))
+		return int64(len(obj.(*StringObject).Value))
 	}
 
 	if obj.Type() == ARRAY {
@@ -477,8 +476,7 @@ func objRange(obj Object, start, end int64) Object {
 
 func objItem(obj Object, index int64) Object {
 	if obj.Type() == STRING {
-		runes := []rune(obj.(*StringObject).Value)
-		return &RuneObject{runes[index]}
+		return &RuneObject{obj.(*StringObject).Value[index]}
 	}
 
 	if obj.Type() == ARRAY {
