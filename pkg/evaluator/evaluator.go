@@ -346,26 +346,20 @@ func evalFunction(node parser.Node, c *Context) (Object, error) {
 func evalFunctionCall(node parser.Node, c *Context) (Object, error) {
 	funcCallNode := node.(*parser.FunctionCallNode)
 
-	tok := funcCallNode.Name.Token()
-	if tok.Type != lexer.IDENT {
-		return nil, mkErrWrongToken("identifier", tok)
-	}
-	name := funcCallNode.Name.(*parser.IdentifierNode).Value
-
-	fObj, err := c.Resolve(name)
+	fObj, err := EvalNode(funcCallNode.Function, c)
 	if err != nil {
 		return nil, err
 	}
 
 	if fObj.Type() != FUNCTION {
-		return nil, mkErrWrongType(FUNCTION, fObj.Type(), funcCallNode.Name)
+		return nil, mkErrWrongType(FUNCTION, fObj.Type(), funcCallNode.Function)
 	}
 
 	f := fObj.(*FunctionObject)
 
 	if len(f.Params) != len(funcCallNode.Args) {
-		return nil, fmt.Errorf("%s Eval error: Expected %d params for %q, got %d",
-			funcCallNode.Token().Location(), len(f.Params), name, len(funcCallNode.Args))
+		return nil, fmt.Errorf("%s Eval error: Expected %d params, got %d",
+			funcCallNode.Token().Location(), len(f.Params), len(funcCallNode.Args))
 	}
 
 	paramContext := f.ParentContext.ChildContext()
