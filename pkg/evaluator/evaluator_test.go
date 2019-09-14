@@ -556,17 +556,30 @@ let func = fn() {
   return test;
 };
 func()[1] = 'ć';
+`, `
+let test = {"zażółć", "gęślą", "jaźń"};
+test[1] = 12;
 `,
 	}
 
 	expected := []Object{
 		&RuneObject{'ć'},
+		&IntObject{12},
 	}
 
 	sideEffects := []map[string]Object{
 		map[string]Object{
 			"test": &StringObject{[]rune("zćżółć")},
 			"func": &FunctionObject{[]string{}, nil, nil},
+		},
+		map[string]Object{
+			"test": &ArrayObject{
+				[]Object{
+					&StringObject{[]rune("zażółć")},
+					&IntObject{12},
+					&StringObject{[]rune("jaźń")},
+				},
+			},
 		},
 	}
 
