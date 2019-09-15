@@ -177,7 +177,7 @@ func (n *BoolNode) Token() lexer.Token {
 }
 
 func (n *RuneNode) String(padding string) string {
-	return fmt.Sprintf("%v", n.Value)
+	return fmt.Sprintf("%v", string(n.Value))
 }
 
 func (n *RuneNode) Children() []Node {
