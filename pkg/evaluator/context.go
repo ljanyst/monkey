@@ -47,5 +47,6 @@ func (c *Context) ChildContext() *Context {
 func NewContext() *Context {
 	c := new(Context)
 	c.bindings = make(map[string]Object)
+	c.Create("len", &FunctionObject{nil, nil, nil, builtinLen})
 	return c
 }
