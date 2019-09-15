@@ -184,9 +184,9 @@ fn(b) {
 	input := []string{input0, input1, input2}
 
 	expected := []Object{
-		&FunctionObject{[]string{"a", "b", "c"}, nil, nil},
-		&FunctionObject{[]string{}, nil, nil},
-		&FunctionObject{[]string{"b"}, nil, nil},
+		&FunctionObject{[]string{"a", "b", "c"}, nil, nil, nil},
+		&FunctionObject{[]string{}, nil, nil, nil},
+		&FunctionObject{[]string{"b"}, nil, nil, nil},
 	}
 
 	sideEffects := []map[string]Object{
@@ -245,9 +245,9 @@ let x2 = funcOuter(1);
 
 	sideEffects := []map[string]Object{
 		map[string]Object{
-			"adder":      &FunctionObject{[]string{"x"}, nil, nil},
-			"multiplier": &FunctionObject{[]string{"x"}, nil, nil},
-			"compositor": &FunctionObject{[]string{"f1", "f2"}, nil, nil},
+			"adder":      &FunctionObject{[]string{"x"}, nil, nil, nil},
+			"multiplier": &FunctionObject{[]string{"x"}, nil, nil, nil},
+			"compositor": &FunctionObject{[]string{"f1", "f2"}, nil, nil, nil},
 			"result":     &IntObject{11},
 		},
 		map[string]Object{
@@ -570,7 +570,7 @@ test[1] = 12;
 	sideEffects := []map[string]Object{
 		map[string]Object{
 			"test": &StringObject{[]rune("zćżółć")},
-			"func": &FunctionObject{[]string{}, nil, nil},
+			"func": &FunctionObject{[]string{}, nil, nil, nil},
 		},
 		map[string]Object{
 			"test": &ArrayObject{
@@ -580,6 +580,38 @@ test[1] = 12;
 					&StringObject{[]rune("jaźń")},
 				},
 			},
+		},
+	}
+
+	evaluateAndCompareResult(t, input, expected, sideEffects)
+}
+
+func TestBuiltins(t *testing.T) {
+	input := []string{`
+let test1 = "zażółć";
+let test2 = {1, "gęślą", 'ł', false};
+let ret1 = len(test1);
+let ret2 = len(test2);
+`,
+	}
+
+	expected := []Object{
+		&IntObject{4},
+	}
+
+	sideEffects := []map[string]Object{
+		map[string]Object{
+			"test1": &StringObject{[]rune("zażółć")},
+			"test2": &ArrayObject{
+				[]Object{
+					&IntObject{1},
+					&StringObject{[]rune("gęślą")},
+					&RuneObject{'ł'},
+					&BoolObject{false},
+				},
+			},
+			"ret1": &IntObject{6},
+			"ret2": &IntObject{4},
 		},
 	}
 
