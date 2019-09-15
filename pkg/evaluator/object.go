@@ -57,10 +57,13 @@ type ExitObject struct {
 	Value Object
 }
 
+type BuiltInFunction func([]Object) (Object, error)
+
 type FunctionObject struct {
 	Params        []string
 	ParentContext *Context
 	Value         parser.Node
+	BuiltIn       BuiltInFunction
 }
 
 type NilObject struct {
@@ -114,6 +117,9 @@ func (o *ExitObject) Type() ObjectType {
 }
 
 func (o *FunctionObject) Inspect() string {
+	if o.BuiltIn != nil {
+		return "builtin(...)"
+	}
 	var sb strings.Builder
 	sb.WriteString("fn(")
 	for i, param := range o.Params {

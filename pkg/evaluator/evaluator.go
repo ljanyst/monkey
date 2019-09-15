@@ -402,7 +402,7 @@ func evalFunction(node parser.Node, c *Context) (Object, error) {
 		}
 		params = append(params, param.(*parser.IdentifierNode).Value)
 	}
-	return &FunctionObject{params, c, funcNode.Body}, nil
+	return &FunctionObject{params, c, funcNode.Body, nil}, nil
 }
 
 func evalFunctionCall(node parser.Node, c *Context) (Object, error) {
@@ -419,18 +419,32 @@ func evalFunctionCall(node parser.Node, c *Context) (Object, error) {
 
 	f := fObj.(*FunctionObject)
 
-	if len(f.Params) != len(funcCallNode.Args) {
+	if f.Params != nil && len(f.Params) != len(funcCallNode.Args) {
 		return nil, fmt.Errorf("%s Eval error: Expected %d params, got %d",
 			funcCallNode.Token().Location(), len(f.Params), len(funcCallNode.Args))
 	}
 
-	paramContext := f.ParentContext.ChildContext()
-	for i, paramName := range f.Params {
-		paramObj, err := EvalNode(funcCallNode.Args[i], c)
+	params := []Object{}
+	for _, paramNode := range funcCallNode.Args {
+		paramObj, err := EvalNode(paramNode, c)
 		if err != nil {
 			return nil, err
 		}
-		paramContext.Create(paramName, paramObj)
+		params = append(params, paramObj)
+	}
+
+	if f.BuiltIn != nil {
+		obj, err := f.BuiltIn(params)
+		if err != nil {
+			return nil, fmt.Errorf("%s Eval error: Expression %q: %s", node.Token().Location(),
+				node.String(""), err)
+		}
+		return obj, nil
+	}
+
+	paramContext := f.ParentContext.ChildContext()
+	for i, paramName := range f.Params {
+		paramContext.Create(paramName, params[i])
 	}
 
 	funcCallContext := paramContext.ChildContext()
