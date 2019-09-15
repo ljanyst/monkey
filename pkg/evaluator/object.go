@@ -101,7 +101,7 @@ func (o *StringObject) Type() ObjectType {
 }
 
 func (o *RuneObject) Inspect() string {
-	return fmt.Sprintf("%q", o.Value)
+	return fmt.Sprintf("%q", string(o.Value))
 }
 
 func (o *RuneObject) Type() ObjectType {
