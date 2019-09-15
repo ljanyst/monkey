@@ -617,3 +617,30 @@ let ret2 = len(test2);
 
 	evaluateAndCompareResult(t, input, expected, sideEffects)
 }
+
+func TestTextComparisons(t *testing.T) {
+	input := []string{`
+let test1 = "foo" == "foo";
+let test2 = "foo" < "foo";
+let test3 = "foo" < "bar";
+let test4 = "bar" <= "foo";
+let test5 = 'a' < 'b';
+`,
+	}
+
+	expected := []Object{
+		&BoolObject{true},
+	}
+
+	sideEffects := []map[string]Object{
+		map[string]Object{
+			"test1": &BoolObject{true},
+			"test2": &BoolObject{false},
+			"test3": &BoolObject{false},
+			"test4": &BoolObject{true},
+			"test5": &BoolObject{true},
+		},
+	}
+
+	evaluateAndCompareResult(t, input, expected, sideEffects)
+}
