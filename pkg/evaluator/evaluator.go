@@ -225,8 +225,40 @@ func evalAssign(node parser.Node, c *Context) (Object, error) {
 }
 
 func evalInfixString(op lexer.Token, lVal, rVal []rune) (Object, error) {
-	if op.Type == lexer.PLUS {
+	switch op.Type {
+	case lexer.PLUS:
 		return &StringObject{append(append([]rune{}, lVal...), rVal...)}, nil
+	case lexer.LT:
+		return &BoolObject{compareStrings(lVal, rVal) < 0}, nil
+	case lexer.LE:
+		return &BoolObject{compareStrings(lVal, rVal) <= 0}, nil
+	case lexer.GT:
+		return &BoolObject{compareStrings(lVal, rVal) > 0}, nil
+	case lexer.GE:
+		return &BoolObject{compareStrings(lVal, rVal) >= 0}, nil
+	case lexer.EQ:
+		return &BoolObject{compareStrings(lVal, rVal) == 0}, nil
+	case lexer.NOT_EQ:
+		return &BoolObject{compareStrings(lVal, rVal) != 0}, nil
+	}
+
+	return nil, mkErrWrongOpForType(op, STRING)
+}
+
+func evalInfixRune(op lexer.Token, lVal, rVal rune) (Object, error) {
+	switch op.Type {
+	case lexer.LT:
+		return &BoolObject{compareRunes(lVal, rVal) < 0}, nil
+	case lexer.LE:
+		return &BoolObject{compareRunes(lVal, rVal) <= 0}, nil
+	case lexer.GT:
+		return &BoolObject{compareRunes(lVal, rVal) > 0}, nil
+	case lexer.GE:
+		return &BoolObject{compareRunes(lVal, rVal) >= 0}, nil
+	case lexer.EQ:
+		return &BoolObject{compareRunes(lVal, rVal) == 0}, nil
+	case lexer.NOT_EQ:
+		return &BoolObject{compareRunes(lVal, rVal) != 0}, nil
 	}
 
 	return nil, mkErrWrongOpForType(op, STRING)
@@ -298,8 +330,9 @@ func evalInfix(node parser.Node, c *Context) (Object, error) {
 		return nil, err
 	}
 
-	if left.Type() != INT && left.Type() != STRING && left.Type() != ARRAY && left.Type() != BOOL {
-		return nil, mkErrWrongTypeStr("INT or STRING or ARRAY or BOOL", left.Type(), iNode.Left)
+	if left.Type() != INT && left.Type() != STRING && left.Type() != ARRAY &&
+		left.Type() != BOOL && left.Type() != RUNE {
+		return nil, mkErrWrongTypeStr("INT or STRING or ARRAY or BOOL or RUNE", left.Type(), iNode.Left)
 	}
 
 	if right.Type() != right.Type() {
@@ -315,6 +348,8 @@ func evalInfix(node parser.Node, c *Context) (Object, error) {
 		return evalInfixInt(tok, left.(*IntObject).Value, right.(*IntObject).Value)
 	case BOOL:
 		return evalInfixBool(tok, left.(*BoolObject).Value, right.(*BoolObject).Value)
+	case RUNE:
+		return evalInfixRune(tok, left.(*RuneObject).Value, right.(*RuneObject).Value)
 	default:
 		return nil, fmt.Errorf("%s Eval error: No infix eval function for type %s",
 			tok.Location(), left.Type())
