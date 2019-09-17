@@ -41,13 +41,10 @@ func run(filename string) {
 	defer file.Close()
 
 	c := evaluator.NewContext()
-	obj, err := evaluator.EvalReader(file, c, filename)
+	_, err = evaluator.EvalReader(file, c, filename)
 	if err != nil {
 		fmt.Printf("ERROR: %s\n", err)
 		os.Exit(1)
-	}
-	if obj.Type() != evaluator.NIL {
-		fmt.Printf("%s\n", obj.Inspect())
 	}
 }
 
