@@ -49,3 +49,30 @@ func builtinPrint(params []Object) (Object, error) {
 
 	return &IntObject{int64(count)}, nil
 }
+
+func builtinAppend(params []Object) (Object, error) {
+	if len(params) < 2 {
+		return nil, fmt.Errorf("append() expects at least two parameters")
+	}
+
+	if params[0].Type() == STRING {
+		target := params[0].(*StringObject)
+		for i := 1; i < len(params); i++ {
+			if params[i].Type() != RUNE {
+				return nil, fmt.Errorf("Can only append rune to a string")
+			}
+			target.Value = append(target.Value, params[i].(*RuneObject).Value)
+		}
+		return &NilObject{}, nil
+	}
+
+	if params[0].Type() == ARRAY {
+		target := params[0].(*ArrayObject)
+		for i := 1; i < len(params); i++ {
+			target.Value = append(target.Value, params[i])
+		}
+		return &NilObject{}, nil
+	}
+
+	return nil, fmt.Errorf("The first parameter needs to be either STRING or ARRAY")
+}
