@@ -592,22 +592,30 @@ let test1 = "zażółć";
 let test2 = {1, "gęślą", 'ł', false};
 let ret1 = len(test1);
 let ret2 = len(test2);
+append(test1, 'a');
+append(test2, {false, "foo"});
 `,
 	}
 
 	expected := []Object{
-		&IntObject{4},
+		&NilObject{},
 	}
 
 	sideEffects := []map[string]Object{
 		map[string]Object{
-			"test1": &StringObject{[]rune("zażółć")},
+			"test1": &StringObject{[]rune("zażółća")},
 			"test2": &ArrayObject{
 				[]Object{
 					&IntObject{1},
 					&StringObject{[]rune("gęślą")},
 					&RuneObject{'ł'},
 					&BoolObject{false},
+					&ArrayObject{
+						[]Object{
+							&BoolObject{false},
+							&StringObject{[]rune("foo")},
+						},
+					},
 				},
 			},
 			"ret1": &IntObject{6},
