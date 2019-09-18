@@ -592,13 +592,15 @@ let test1 = "zażółć";
 let test2 = {1, "gęślą", 'ł', false};
 let ret1 = len(test1);
 let ret2 = len(test2);
-append(test1, 'a');
-append(test2, {false, "foo"});
+append(test1, 'a', 'b');
+append(test2, {false, "foo"}, 'ł');
+pop(test1);
+pop(test2);
 `,
 	}
 
 	expected := []Object{
-		&NilObject{},
+		&RuneObject{'ł'},
 	}
 
 	sideEffects := []map[string]Object{
