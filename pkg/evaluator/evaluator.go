@@ -67,6 +67,7 @@ func evalBlock(node parser.Node, c *Context) (Object, error) {
 		c = c.ChildContext()
 	}
 
+	obj = &NilObject{}
 	for _, n := range node.Children() {
 		obj, err = EvalNode(n, c)
 		if err != nil {
