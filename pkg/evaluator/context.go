@@ -50,5 +50,6 @@ func NewContext() *Context {
 	c.Create("len", &FunctionObject{nil, nil, nil, builtinLen})
 	c.Create("print", &FunctionObject{nil, nil, nil, builtinPrint})
 	c.Create("append", &FunctionObject{nil, nil, nil, builtinAppend})
+	c.Create("pop", &FunctionObject{nil, nil, nil, builtinPop})
 	return c
 }

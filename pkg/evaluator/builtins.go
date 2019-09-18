@@ -76,3 +76,30 @@ func builtinAppend(params []Object) (Object, error) {
 
 	return nil, fmt.Errorf("The first parameter needs to be either STRING or ARRAY")
 }
+
+func builtinPop(params []Object) (Object, error) {
+	if len(params) != 1 {
+		return nil, fmt.Errorf("append() expects exactly one parameter")
+	}
+
+	if params[0].Type() != STRING && params[0].Type() != ARRAY {
+		return nil, fmt.Errorf("The first parameter needs to be either STRING or ARRAY")
+	}
+
+	arrLen := objLen(params[0])
+	if arrLen == 0 {
+		return nil, fmt.Errorf("Cannot pop from an empty container")
+	}
+	last := objItem(params[0], arrLen-1)
+
+	if params[0].Type() == STRING {
+		target := params[0].(*StringObject)
+		target.Value = target.Value[0 : arrLen-1]
+	}
+
+	if params[0].Type() == ARRAY {
+		target := params[0].(*ArrayObject)
+		target.Value = target.Value[0 : arrLen-1]
+	}
+	return last, nil
+}
