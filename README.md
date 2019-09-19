@@ -69,17 +69,17 @@ let pivot = fn(array, start, end) {
   return i;
 };
 
-let qs = fn(array, start, end, indent) {
+let qs = fn(array, start, end) {
   if (end - start < 1) {
     return nil;
   };
   let p = pivot(array, start, end);
-  qs(array, start, p-1, indent + "  ");
-  qs(array, p+1, end, indent + " ");
+  qs(array, start, p-1);
+  qs(array, p+1, end);
 };
 
 let quicksort = fn(string) {
-  qs(string, 0, len(string)-1, "");
+  qs(string, 0, len(string)-1);
 };
 
 print("Unsorted: #", string);
